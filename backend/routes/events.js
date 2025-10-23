@@ -4,6 +4,35 @@ import { authenticateToken, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// ==================== TEST ENDPOINT ====================
+// Must be BEFORE /:id route
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Events routes working!' });
+});
+
+
+// Debug - check Events table structure
+router.get('/schema', async (req, res) => {
+  try {
+    const pool = req.app.get('dbPool');
+    
+    const result = await pool.request().query(`
+      SELECT TOP 5 * FROM Events
+    `);
+    
+    res.json({
+      success: true,
+      count: result.recordset.length,
+      events: result.recordset
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
 // ==================== GET ALL EVENTS ====================
 // Public endpoint - anyone can view events
 router.get('/', async (req, res) => {
