@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { getPool, closePool } from './config/database.js';
+import authRouter from './routes/auth.js';
+import eventRoutes from './routes/events.js';
 
 // Load environment variables
 dotenv.config();
@@ -97,6 +99,12 @@ app.get('/api', (req, res) => {
     }
   });
 });
+
+// Auth routes
+app.use('/api/auth', authRouter);
+
+// Event routes
+app.use('/api/events', eventRoutes);
 
 // 404 handler
 app.use((req, res) => { // <--- FIXED: No path argument needed, it runs for all unhandled requests
