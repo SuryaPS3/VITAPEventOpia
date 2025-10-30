@@ -147,7 +147,7 @@ Make it visual:
 ### Current Spotify Playing
 Use [Spotify GitHub Profile](https://github.com/kittinan/spotify-github-profile):
 ```markdown
-![Spotify](https://spotify-github-profile.vercel.app/api/view?uid=yourspotifyid&cover_image=true)
+![Spotify](https://spotify-github-profile.vercel.app/api/view?username=yourspotifyusername&cover_image=true)
 ```
 
 ## ✅ Best Practices
