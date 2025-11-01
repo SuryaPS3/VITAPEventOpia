@@ -2,7 +2,7 @@
 // This file handles ALL communication with the backend
 
 // Base URL of your backend server
-const API_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Helper function to get the authentication token
 const getAuthToken = () => {
