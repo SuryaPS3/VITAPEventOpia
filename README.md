@@ -19,6 +19,7 @@ A modern, responsive web application for managing college events with role-based
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
+- [Documentation](#documentation)
 
 ## ✨ Features
 
@@ -347,6 +348,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Tailwind CSS for the utility-first CSS framework
 - All contributors and supporters of this project
 - College event management teams for inspiration
+
+---
+
+## 📚 Documentation
+
+### GitHub Profile README Guide
+Want to create an awesome GitHub profile README? Check out our comprehensive guide:
+
+👉 **[How to Add a README.md to Your GitHub Profile](docs/GITHUB_PROFILE_README.md)**
+
+This guide includes:
+- Step-by-step instructions for creating a profile README
+- Customization ideas and templates
+- Best practices and tips
+- Tools and resources
+- Examples and inspiration
 
 ---
 
