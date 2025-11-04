@@ -11,11 +11,12 @@ export const dbConfig = {
   port: parseInt(process.env.DB_PORT) || 1433,
   options: {
     encrypt: true,
-    trustServerCertifter: false,
+    trustServerCertificate: false,
     enableArithAbort: true,
     requestTimeout: 30000,
     connectionTimeout: 30000,
-  },
+},
+
   pool: {
     max: 10,
     min: 0,
