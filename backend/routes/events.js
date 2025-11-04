@@ -480,3 +480,36 @@ router.get('/:id/registrations', authenticateToken, async (req, res) => {
 });
 
 export default router;
+
+// ==================== APPROVE EVENT ====================
+router.post('/:id/approve', authenticateToken, authorize('admin', 'club_faculty'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { approval_status, comments } = req.body;
+
+    if (!approval_status || (approval_status !== 'approved' && approval_status !== 'rejected')) {
+      return res.status(400).json({ success: false, message: 'Invalid approval status' });
+    }
+
+    const pool = req.app.get('dbPool');
+
+    // Update event status
+    await pool.request()
+      .input('id', sql.Int, id)
+      .input('status', sql.NVarChar, approval_status)
+      .query('UPDATE Events SET status = @status WHERE id = @id');
+
+    // Create approval record
+    await pool.request()
+      .input('event_id', sql.Int, id)
+      .input('approved_by', sql.Int, req.user.id)
+      .input('approval_status', sql.NVarChar, approval_status)
+      .input('comments', sql.NVarChar, comments)
+      .query('INSERT INTO EventApprovals (event_id, approved_by, approval_status, comments) VALUES (@event_id, @approved_by, @approval_status, @comments)');
+
+    res.json({ success: true, message: `Event ${approval_status} successfully` });
+  } catch (error) {
+    console.error('Approve event error:', error);
+    res.status(500).json({ success: false, message: 'Failed to approve event' });
+  }
+});

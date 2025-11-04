@@ -10,11 +10,7 @@ import { createCircularsTable, dropCircularsTable } from './database/schemas/cir
 import { createEventApprovalsTable, dropEventApprovalsTable } from './database/schemas/eventApprovals.js';
 import { createUserSessionsTable, dropUserSessionsTable } from './database/schemas/userSessions.js';
 
-// Seed import (supports default or named)
-import * as seeds from './database/seeds/initialData.js';
-const seedInitialData = seeds.seedInitialData || seeds.default || (async () => {
-  console.log('ℹ️ No seedInitialData export found. Skipping seeding.');
-});
+import { seedDatabase } from './database/seeds/initialData.js';
 
 async function setupDatabase() {
   let pool;
@@ -68,7 +64,7 @@ async function setupDatabase() {
     `);
     console.log('✅ Indexes created');
 
-    await seedInitialData(pool);
+    await seedDatabase(pool);
 
     console.log('🎉 EventOpia database setup completed successfully!\n');
     console.log('🔐 Default Login Credentials:');

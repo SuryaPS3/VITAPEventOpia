@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 import { getPool, closePool } from './config/database.js';
 import authRouter from './routes/auth.js';
 import eventRoutes from './routes/events.js';
+import clubRoutes from './routes/clubs.js';
+import circularsRoutes from './routes/circulars.js';
 
 // Load environment variables
 dotenv.config();
@@ -105,6 +107,12 @@ app.use('/api/auth', authRouter);
 
 // Event routes
 app.use('/api/events', eventRoutes);
+
+// Club routes
+app.use('/api/clubs', clubRoutes);
+
+// Circulars routes
+app.use('/api/circulars', circularsRoutes);
 
 // 404 handler
 app.use((req, res) => { // <--- FIXED: No path argument needed, it runs for all unhandled requests
