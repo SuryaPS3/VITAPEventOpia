@@ -4,10 +4,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const dbConfig = {
-	server: process.env.DB_SERVER || "suryafreesqldb.database.windows.net",
+	server: process.env.DB_SERVER,
 	database: process.env.DB_DATABASE,
-	user: process.env.DB_USER || "SuryaPS3",
-	password: process.env.DB_PASSWORD || "Le@rn2003",
+	user: process.env.DB_USER,
+	password: process.env.DB_PASSWORD,
 	port: parseInt(process.env.DB_PORT) || 1433,
 	options: {
 		encrypt: true,
