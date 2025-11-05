@@ -161,6 +161,7 @@ const App = () => {
 
   // ✅ Handle logout
   const handleLogout = () => {
+    authAPI.logout(); // Clear localStorage
     setUser(null);
     setShowRoleSelection(false);
     setCurrentPage(null);
@@ -177,7 +178,7 @@ const App = () => {
       case 'faculty':
         return <FacultyPage user={user} onLogout={handleLogout} events={dummyEvents} clubs={dummyClubs} />;
       case 'head':
-        return <HeadPage user={user} onLogout={handleLogout} events={dummyEvents} clubs={dummyClubs} />;
+        return <HeadPage user={user} onLogout={handleLogout} />;
       default:
         return null;
     }
