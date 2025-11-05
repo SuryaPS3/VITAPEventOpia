@@ -14,6 +14,7 @@ router.get('/test', (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt for:', email);
     
     if (!email || !password) {
       return res.status(400).json({ 
@@ -27,6 +28,8 @@ router.post('/login', async (req, res) => {
       .input('email', sql.NVarChar, email)
       .query('SELECT * FROM Users WHERE email = @email');
 
+    console.log('Database query result:', result.recordset.length > 0 ? 'User found' : 'User not found');
+
     if (result.recordset.length === 0) {
       return res.status(401).json({ 
         success: false,
@@ -35,7 +38,9 @@ router.post('/login', async (req, res) => {
     }
 
     const user = result.recordset[0];
+    console.log('User retrieved, checking password...');
     const validPassword = await bcrypt.compare(password, user.password_hash);
+    console.log('Password validation result:', validPassword);
     
     if (!validPassword) {
       return res.status(401).json({ 
@@ -66,7 +71,8 @@ router.post('/login', async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({ 
       success: false,
-      message: 'Login failed'
+      message: 'Login failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
