@@ -99,6 +99,52 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ==================== GET PENDING EVENTS FOR APPROVAL ====================
+// Protected - department_head only
+router.get('/pending', authenticateToken, authorize('department_head'), async (req, res) => {
+  try {
+    const pool = req.app.get('dbPool');
+
+    const result = await pool.request().query(`
+      SELECT 
+        e.id,
+        e.title,
+        e.description,
+        e.category,
+        e.event_date,
+        e.event_time,
+        e.venue,
+        e.fee,
+        e.expected_attendees,
+        e.registration_start,
+        e.registration_end,
+        e.status,
+        e.created_at,
+        c.name as club_name,
+        c.club_email,
+        creator.first_name + ' ' + creator.last_name as created_by_name,
+        creator.email as created_by_email
+      FROM Events e
+      LEFT JOIN Clubs c ON e.club_id = c.id
+      LEFT JOIN Users creator ON e.created_by = creator.id
+      WHERE e.status = 'pending'
+      ORDER BY e.created_at DESC
+    `);
+
+    res.json({
+      success: true,
+      count: result.recordset.length,
+      events: result.recordset
+    });
+  } catch (error) {
+    console.error('Get pending events error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch pending events'
+    });
+  }
+});
+
 // ==================== GET SINGLE EVENT ====================
 // Public endpoint
 router.get('/:id', async (req, res) => {
@@ -475,6 +521,226 @@ router.get('/:id/registrations', authenticateToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch registrations'
+    });
+  }
+});
+
+// ==================== APPROVE EVENT ====================
+// Protected - department_head only
+router.put('/:id/approve', authenticateToken, authorize('department_head'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { comments } = req.body;
+    const pool = req.app.get('dbPool');
+
+    // Check if event exists and is pending
+    const eventCheck = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT id, status, title FROM Events WHERE id = @id');
+
+    if (eventCheck.recordset.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    const event = eventCheck.recordset[0];
+    if (event.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot approve event with status: ${event.status}`
+      });
+    }
+
+    // Approve the event
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .input('approved_by', sql.Int, req.user.id)
+      .input('approval_date', sql.DateTime2, new Date())
+      .query(`
+        UPDATE Events
+        SET 
+          status = 'approved',
+          approved_by = @approved_by,
+          approval_date = @approval_date,
+          updated_at = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
+
+    // Log the approval in EventApprovals table if it exists
+    try {
+      await pool.request()
+        .input('event_id', sql.Int, id)
+        .input('approved_by', sql.Int, req.user.id)
+        .input('approval_status', sql.NVarChar, 'approved')
+        .input('comments', sql.NVarChar, comments || 'Event approved by department head')
+        .query(`
+          INSERT INTO EventApprovals (event_id, approved_by, approval_status, comments, approval_date)
+          VALUES (@event_id, @approved_by, @approval_status, @comments, GETDATE())
+        `);
+    } catch (approvalLogError) {
+      console.log('Note: Could not log to EventApprovals table:', approvalLogError.message);
+    }
+
+    res.json({
+      success: true,
+      message: `Event "${event.title}" has been approved successfully`,
+      event: result.recordset[0]
+    });
+  } catch (error) {
+    console.error('Approve event error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to approve event'
+    });
+  }
+});
+
+// ==================== REJECT EVENT ====================
+// Protected - department_head only
+router.put('/:id/reject', authenticateToken, authorize('department_head'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const pool = req.app.get('dbPool');
+
+    if (!reason || reason.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Rejection reason is required'
+      });
+    }
+
+    // Check if event exists and is pending
+    const eventCheck = await pool.request()
+      .input('id', sql.Int, id)
+      .query('SELECT id, status, title FROM Events WHERE id = @id');
+
+    if (eventCheck.recordset.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    const event = eventCheck.recordset[0];
+    if (event.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot reject event with status: ${event.status}`
+      });
+    }
+
+    // Reject the event
+    const result = await pool.request()
+      .input('id', sql.Int, id)
+      .input('approved_by', sql.Int, req.user.id)
+      .input('approval_date', sql.DateTime2, new Date())
+      .query(`
+        UPDATE Events
+        SET 
+          status = 'rejected',
+          approved_by = @approved_by,
+          approval_date = @approval_date,
+          updated_at = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE id = @id
+      `);
+
+    // Log the rejection in EventApprovals table if it exists
+    try {
+      await pool.request()
+        .input('event_id', sql.Int, id)
+        .input('approved_by', sql.Int, req.user.id)
+        .input('approval_status', sql.NVarChar, 'rejected')
+        .input('comments', sql.NVarChar, reason)
+        .query(`
+          INSERT INTO EventApprovals (event_id, approved_by, approval_status, comments, approval_date)
+          VALUES (@event_id, @approved_by, @approval_status, @comments, GETDATE())
+        `);
+    } catch (approvalLogError) {
+      console.log('Note: Could not log to EventApprovals table:', approvalLogError.message);
+    }
+
+    res.json({
+      success: true,
+      message: `Event "${event.title}" has been rejected`,
+      reason: reason,
+      event: result.recordset[0]
+    });
+  } catch (error) {
+    console.error('Reject event error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reject event'
+    });
+  }
+});
+
+// ==================== GET APPROVAL HISTORY ====================
+// Protected - department_head and admin only
+router.get('/:id/approvals', authenticateToken, authorize('department_head', 'admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pool = req.app.get('dbPool');
+
+    // Get event basic info
+    const eventResult = await pool.request()
+      .input('id', sql.Int, id)
+      .query(`
+        SELECT 
+          e.id,
+          e.title,
+          e.status,
+          e.approved_by,
+          e.approval_date,
+          approver.first_name + ' ' + approver.last_name as approved_by_name
+        FROM Events e
+        LEFT JOIN Users approver ON e.approved_by = approver.id
+        WHERE e.id = @id
+      `);
+
+    if (eventResult.recordset.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    // Get approval history from EventApprovals table if it exists
+    let approvalHistory = [];
+    try {
+      const historyResult = await pool.request()
+        .input('event_id', sql.Int, id)
+        .query(`
+          SELECT 
+            ea.approval_status,
+            ea.comments,
+            ea.approval_date,
+            u.first_name + ' ' + u.last_name as approver_name,
+            u.email as approver_email
+          FROM EventApprovals ea
+          LEFT JOIN Users u ON ea.approved_by = u.id
+          WHERE ea.event_id = @event_id
+          ORDER BY ea.approval_date DESC
+        `);
+      approvalHistory = historyResult.recordset;
+    } catch (historyError) {
+      console.log('Note: EventApprovals table not accessible:', historyError.message);
+    }
+
+    res.json({
+      success: true,
+      event: eventResult.recordset[0],
+      approvalHistory: approvalHistory
+    });
+  } catch (error) {
+    console.error('Get approval history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch approval history'
     });
   }
 });

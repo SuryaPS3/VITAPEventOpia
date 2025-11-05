@@ -106,8 +106,10 @@ async function seedUsers(pool) {
   };
 
   await upsertUser({ email: 'admin@vitap.ac.in', password: 'admin123', first: 'System', last: 'Admin', role: 'admin' });
+  await upsertUser({ email: 'head@vitap.ac.in', password: 'head123', first: 'Assistant', last: 'Director', role: 'department_head' });
   await upsertUser({ email: 'faculty@vitap.ac.in', password: 'faculty123', first: 'Club', last: 'Faculty', role: 'club_faculty' });
   await upsertUser({ email: 'student@vitap.ac.in', password: 'student123', first: 'Student', last: 'Member', role: 'club_member' });
+  
 }
 
 async function seedClubs(pool) {
