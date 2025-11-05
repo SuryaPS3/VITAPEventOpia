@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
+import { authAPI } from './api/client.js';
 import Login from './components/LoginModal.jsx';
 import RoleSelection from './components/AccessRoleDashboard.jsx';
 import VisitorPage from './components/VisitorPage.jsx';
@@ -89,34 +90,66 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState(null); // Which dashboard is shown
   const [showLogin, setShowLogin] = useState(true); // Controls login modal visibility
 
-  // ✅ Simulated login logic
+  // ✅ Backend-connected login logic with fallback to mock
   const handleLogin = async (credentials) => {
-    // Here, you could add API logic. For now, just simulate a short delay
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const { email, password } = credentials;
-        const mockUsers = {
-          'student@vit.ac.in': { password: 'student123', name: 'Student User', roles: ['visitor'] },
-          'admin@vit.ac.in': { password: 'admin123', name: 'Club Admin', roles: ['visitor', 'admin'] },
-          'faculty@vit.ac.in': { password: 'faculty123', name: 'Faculty Coordinator', roles: ['visitor', 'faculty'] },
-          'head@vit.ac.in': { password: 'head123', name: 'Department Head', roles: ['visitor', 'head'] }
+    const { email, password } = credentials;
+    
+    try {
+      // Try backend authentication first
+      const response = await authAPI.login({ email, password });
+      
+      if (response.success && response.user) {
+        // Map backend role to frontend role
+        const roleMapping = {
+          'admin': 'admin',
+          'club_faculty': 'faculty', 
+          'department_head': 'head',
+          'club_member': 'visitor'
         };
+        
+        const mappedRole = roleMapping[response.user.role] || 'visitor';
+        const user = {
+          ...response.user,
+          name: `${response.user.first_name} ${response.user.last_name}`,
+          roles: [mappedRole]
+        };
+        
+        setUser(user);
+        setCurrentPage(mappedRole);
+        setShowLogin(false);
+        return Promise.resolve();
+      } else {
+        throw new Error(response.message || 'Login failed');
+      }
+    } catch (backendError) {
+      console.warn('Backend login failed, trying mock users:', backendError.message);
+      
+      // Fallback to mock authentication
+      const mockUsers = {
+        'student@vit.ac.in': { password: 'student123', name: 'Student User', roles: ['visitor'] },
+        'admin@vit.ac.in': { password: 'admin123', name: 'Club Admin', roles: ['visitor', 'admin'] },
+        'faculty@vit.ac.in': { password: 'faculty123', name: 'Faculty Coordinator', roles: ['visitor', 'faculty'] },
+        'head@vit.ac.in': { password: 'head123', name: 'Department Head', roles: ['visitor', 'head'] },
+        // Add the actual database credentials as fallback
+        'admin@vitap.ac.in': { password: 'admin123', name: 'System Admin', roles: ['admin'] },
+        'faculty@vitap.ac.in': { password: 'faculty123', name: 'Club Faculty', roles: ['faculty'] },
+        'student@vitap.ac.in': { password: 'student123', name: 'Student Member', roles: ['visitor'] }
+      };
 
-        const user = mockUsers[email];
-        if (user && user.password === password) {
-          setUser({ ...user, email });
-          if (user.roles.length > 1) {
-            setShowRoleSelection(true);
-          } else {
-            setCurrentPage(user.roles[0]);
-          }
-          setShowLogin(false);
-          resolve();
+      const user = mockUsers[email];
+      if (user && user.password === password) {
+        setUser({ ...user, email });
+        if (user.roles.length > 1) {
+          setShowRoleSelection(true);
         } else {
-          reject(new Error('Invalid credentials'));
+          setCurrentPage(user.roles[0]);
         }
-      }, 700);
-    });
+        setShowLogin(false);
+        return Promise.resolve();
+      } else {
+        throw new Error('Invalid credentials');
+      }
+    }
   };
 
   // ✅ Handle role selection

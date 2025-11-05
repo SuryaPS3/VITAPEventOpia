@@ -11,7 +11,7 @@ export const dbConfig = {
   port: parseInt(process.env.DB_PORT) || 1433,
   options: {
     encrypt: true,
-    trustServerCertifter: false,
+    trustServerCertificate: false,
     enableArithAbort: true,
     requestTimeout: 30000,
     connectionTimeout: 30000,
@@ -23,18 +23,19 @@ export const dbConfig = {
   }
 };
 
-let pool = null;
+let poolPromise = null;
 
 export const getPool = async () => {
-  if (!pool) {
-    pool = await sql.connect(dbConfig);
+  if (!poolPromise) {
+    poolPromise = sql.connect(dbConfig);
   }
-  return pool;
+  return poolPromise;
 };
 
 export const closePool = async () => {
-  if (pool) {
+  if (poolPromise) {
+    const pool = await poolPromise;
     await pool.close();
-    pool = null;
+    poolPromise = null;
   }
 };
