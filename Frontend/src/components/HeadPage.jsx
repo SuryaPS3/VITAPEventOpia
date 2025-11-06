@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client.js';
 import './HeadPage.css';
 
-const HeadPage = ({ user, onLogout }) => {
+const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
   // Tab management
   const [activeSection, setActiveSection] = useState('approvals');
   
@@ -84,6 +84,11 @@ const HeadPage = ({ user, onLogout }) => {
         setPendingEvents(prev => prev.filter(event => event.id !== eventId));
         setSelectedEvent(null);
         setApprovalComments('');
+        
+        // Refresh the approved events for student dashboard
+        if (onEventStatusChanged) {
+          onEventStatusChanged();
+        }
       }
     } catch (err) {
       alert('Failed to approve event: ' + (err.message || 'Unknown error'));
@@ -110,6 +115,11 @@ const HeadPage = ({ user, onLogout }) => {
         setPendingEvents(prev => prev.filter(event => event.id !== eventId));
         setSelectedEvent(null);
         setApprovalComments('');
+        
+        // Refresh the student dashboard (rejected events won't show anyway)
+        if (onEventStatusChanged) {
+          onEventStatusChanged();
+        }
       }
     } catch (err) {
       alert('Failed to reject event: ' + (err.message || 'Unknown error'));

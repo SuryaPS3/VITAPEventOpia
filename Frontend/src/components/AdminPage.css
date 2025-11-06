@@ -564,3 +564,34 @@
     padding: 20px;
   }
 }
+
+/* Loading and Empty States */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(51, 65, 85, 0.4);
+  border-radius: 15px;
+  border: 2px solid rgba(157, 80, 187, 0.2);
+  color: #94a3b8;
+  font-size: 1.1rem;
+}
+
+.no-requests {
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(51, 65, 85, 0.4);
+  border-radius: 15px;
+  border: 2px solid rgba(157, 80, 187, 0.2);
+}
+
+.no-requests h3 {
+  color: #f8fafc;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.no-requests p {
+  color: #94a3b8;
+  font-size: 1rem;
+  margin: 0;
+}

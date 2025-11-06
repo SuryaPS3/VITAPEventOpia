@@ -269,17 +269,39 @@ export const apiClient = {
   },
   
   post: async (url, data) => {
-    const response = await fetch(`${API_URL}${url}`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(data)
-    });
+    const fullUrl = `${API_URL}${url}`;
+    console.log('API POST request to:', fullUrl);
+    console.log('POST data:', data);
+    console.log('Headers:', getHeaders());
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    try {
+      const response = await fetch(fullUrl, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log('Response data:', responseData);
+      } catch (parseError) {
+        console.error('Error parsing response JSON:', parseError);
+        throw new Error(`HTTP error! status: ${response.status}, message: Could not parse response`);
+      }
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(responseData)}`);
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('POST request error:', error);
+      throw error;
     }
-    
-    return response.json();
   },
   
   put: async (url, data) => {

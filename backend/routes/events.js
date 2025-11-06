@@ -219,11 +219,11 @@ router.post('/', authenticateToken, authorize('club_faculty', 'admin'), async (r
       .input('description', sql.NVarChar, description || null)
       .input('category', sql.NVarChar, category || 'General')
       .input('event_date', sql.Date, event_date)
-      .input('event_time', sql.Time, event_time || '10:00:00')
+      .input('event_time', sql.NVarChar, event_time || null)
       .input('venue', sql.NVarChar, venue)
       .input('fee', sql.NVarChar, fee || 'Free')
       .input('expected_attendees', sql.Int, expected_attendees || 50)
-      .input('club_id', sql.Int, club_id || null)
+      .input('club_id', sql.Int, club_id || 1)
       .input('created_by', sql.Int, req.user.id)
       .input('status', sql.NVarChar, 'pending')
       .query(`
@@ -244,10 +244,22 @@ router.post('/', authenticateToken, authorize('club_faculty', 'admin'), async (r
       event: result.recordset[0]
     });
   } catch (error) {
-    console.error('Create event error:', error);
+    console.error('Create event error details:', {
+      message: error.message,
+      code: error.code,
+      number: error.number,
+      state: error.state,
+      class: error.class,
+      lineNumber: error.lineNumber,
+      serverName: error.serverName,
+      procName: error.procName,
+      stack: error.stack
+    });
+    
     res.status(500).json({
       success: false,
-      message: 'Failed to create event'
+      message: 'Failed to create event',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -297,7 +309,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
       .input('description', sql.NVarChar, description)
       .input('category', sql.NVarChar, category)
       .input('event_date', sql.Date, event_date)
-      .input('event_time', sql.Time, event_time)
+      .input('event_time', sql.NVarChar, event_time)
       .input('venue', sql.NVarChar, venue)
       .input('fee', sql.NVarChar, fee)
       .input('expected_attendees', sql.Int, expected_attendees)

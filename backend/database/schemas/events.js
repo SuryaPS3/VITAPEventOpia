@@ -8,7 +8,7 @@ export const createEventsTable = async (pool) => {
       category NVARCHAR(100) DEFAULT 'General',
       club_id INT NOT NULL,
       event_date DATE NOT NULL,
-      event_time TIME,
+      event_time NVARCHAR(20),
       venue NVARCHAR(300),
       fee NVARCHAR(50) DEFAULT 'Free',
       expected_attendees INT DEFAULT 0,

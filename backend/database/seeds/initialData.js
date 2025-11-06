@@ -215,7 +215,7 @@ async function seedEvents(pool) {
       venue: 'Auditorium',
       status: 'approved',
       event_date: '2025-10-20',
-      event_time: new Date(`2000-01-01T10:00:00`),
+      event_time: '10:00:00',
       fee: 'Free',
       expected_attendees: 100
     },
@@ -226,7 +226,7 @@ async function seedEvents(pool) {
       venue: 'Lab 1',
       status: 'pending',
       event_date: '2025-11-05',
-      event_time: new Date(`2000-01-01T18:00:00`),
+      event_time: '18:00:00',
       fee: 'Free',
       expected_attendees: 150
     }
