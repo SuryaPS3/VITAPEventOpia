@@ -26,14 +26,14 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
       setLoadingRequests(true);
       console.log('🔍 Fetching pending events for user:', user);
       console.log('🔍 User details - name:', user?.name, 'first_name:', user?.first_name, 'last_name:', user?.last_name, 'id:', user?.id);
-      
+
       // Fetch all events with pending status
       const response = await apiClient.get('/events?status=pending');
       console.log('📋 All pending events response:', response);
-      
+
       if (response.success) {
         console.log('📋 All pending events:', response.events);
-        
+
         // Filter events created by current user
         const myEvents = response.events.filter(event => {
           console.log(`🔍 Checking event ${event.id}:`, {
@@ -43,12 +43,12 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
             user_full_name: `${user.first_name} ${user.last_name}`,
             user_id: user.id
           });
-          
-          return event.created_by_name === user.name || 
-                 event.created_by_name === `${user.first_name} ${user.last_name}` ||
-                 event.created_by === user.id;
+
+          return event.created_by_name === user.name ||
+            event.created_by_name === `${user.first_name} ${user.last_name}` ||
+            event.created_by === user.id;
         });
-        
+
         console.log('✅ My filtered pending events:', myEvents);
         setMyPendingEvents(myEvents);
       } else {
@@ -77,12 +77,12 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
 
   const handleCreateEvent = async (e) => {
     e.preventDefault();
-    
+
     console.log('🚀 Form submission started');
     console.log('📝 Current form data:', formData);
     console.log('👤 Current user:', user);
     console.log('🔧 onPostEvent function:', typeof onPostEvent);
-    
+
     // Basic validation
     if (!formData.title || !formData.category || !formData.date || !formData.time || !formData.venue) {
       console.error('❌ Validation failed - missing required fields');
@@ -93,21 +93,21 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
     console.log('✅ Validation passed');
 
     setSubmitting(true);
-    
+
     // Switch to requests tab immediately for debugging
     console.log('🔄 Switching to requests tab...');
     setActiveSection('requests');
-    
+
     try {
       console.log('📤 Calling onPostEvent with formData...');
-      
+
       if (!onPostEvent) {
         throw new Error('onPostEvent function is not provided');
       }
-      
+
       const success = await onPostEvent(formData);
       console.log('📥 onPostEvent returned:', success);
-      
+
       if (success) {
         console.log('🎉 Event creation successful!');
         alert('✅ Event submitted successfully!');
@@ -263,30 +263,30 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
             </div>
           ) : (
             myPendingEvents.map(request => (
-            <div key={request.id} className="request-card">
-              <div className="request-header">
-                <div className="request-title">{request.title}</div>
-                <div className={`request-status ${getStatusColor(request.status)}`}>
-                  {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+              <div key={request.id} className="request-card">
+                <div className="request-header">
+                  <div className="request-title">{request.title}</div>
+                  <div className={`request-status ${getStatusColor(request.status)}`}>
+                    {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                  </div>
+                </div>
+                <div className="request-details">
+                  <div className="request-detail">📅<span>{new Date(request.event_date).toLocaleDateString()}</span></div>
+                  <div className="request-detail">⏰<span>{request.event_time}</span></div>
+                  <div className="request-detail">📍<span>{request.venue}</span></div>
+                  <div className="request-detail">🎭<span>{request.category}</span></div>
+                </div>
+                <p className="request-description">{request.description}</p>
+                <div className="request-footer">
+                  <small>Created: {new Date(request.created_at).toLocaleDateString()}</small>
+                  {request.status === 'pending' && (
+                    <div className="request-actions">
+                      <span className="pending-badge">⏳ Awaiting Review</span>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="request-details">
-                <div className="request-detail">📅<span>{new Date(request.event_date).toLocaleDateString()}</span></div>
-                <div className="request-detail">⏰<span>{request.event_time}</span></div>
-                <div className="request-detail">📍<span>{request.venue}</span></div>
-                <div className="request-detail">🎭<span>{request.category}</span></div>
-              </div>
-              <p className="request-description">{request.description}</p>
-              <div className="request-footer">
-                <small>Created: {new Date(request.created_at).toLocaleDateString()}</small>
-                {request.status === 'pending' && (
-                  <div className="request-actions">
-                    <span className="pending-badge">⏳ Awaiting Review</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )))}
+            )))}
         </div>
       </div>
     );
@@ -295,7 +295,7 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
-        <img src="../public/Logo-removebg-preview.png" alt="VIT Logo" className="header-logo" />
+        <img src="/Logo-removebg-preview (1).svg" alt="VIT Logo" className="header-logo" />
         <div className="dashboard-nav">
           <button className={`nav-btn ${activeSection === 'my-events' ? 'active' : ''}`} onClick={() => setActiveSection('my-events')}>
             My Events
