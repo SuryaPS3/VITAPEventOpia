@@ -106,8 +106,10 @@ async function seedUsers(pool) {
   };
 
   await upsertUser({ email: 'admin@vitap.ac.in', password: 'admin123', first: 'System', last: 'Admin', role: 'admin' });
+  await upsertUser({ email: 'head@vitap.ac.in', password: 'head123', first: 'Assistant', last: 'Director', role: 'department_head' });
   await upsertUser({ email: 'faculty@vitap.ac.in', password: 'faculty123', first: 'Club', last: 'Faculty', role: 'club_faculty' });
   await upsertUser({ email: 'student@vitap.ac.in', password: 'student123', first: 'Student', last: 'Member', role: 'club_member' });
+  
 }
 
 async function seedClubs(pool) {
@@ -213,7 +215,7 @@ async function seedEvents(pool) {
       venue: 'Auditorium',
       status: 'approved',
       event_date: '2025-10-20',
-      event_time: new Date(`2000-01-01T10:00:00`),
+      event_time: '10:00:00',
       fee: 'Free',
       expected_attendees: 100
     },
@@ -224,7 +226,7 @@ async function seedEvents(pool) {
       venue: 'Lab 1',
       status: 'pending',
       event_date: '2025-11-05',
-      event_time: new Date(`2000-01-01T18:00:00`),
+      event_time: '18:00:00',
       fee: 'Free',
       expected_attendees: 150
     }

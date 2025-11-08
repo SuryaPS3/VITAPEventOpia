@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './VisitorPage.css';
 
-const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout, events }) => {
+const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout, events, loading }) => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -114,7 +114,22 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
             ))}
           </div>
           <div className="events-grid">
-            {getFilteredEvents().map(event => (
+            {loading ? (
+              <div className="loading-events">
+                <div className="loading-spinner"></div>
+                <p>Loading approved events...</p>
+              </div>
+            ) : events.length === 0 ? (
+              <div className="no-events">
+                <h3>🎉 No Events Yet</h3>
+                <p>Stay tuned! Amazing events are coming soon.</p>
+              </div>
+            ) : getFilteredEvents().length === 0 ? (
+              <div className="no-events">
+                <h3>🔍 No Events Found</h3>
+                <p>Try searching with different criteria or check other categories.</p>
+              </div>
+            ) : getFilteredEvents().map(event => (
               <div key={event.id} className="event-card">
                 <div className="event-header">
                   <div>

@@ -2,7 +2,8 @@
 // This file handles ALL communication with the backend
 
 // Base URL of your backend server
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+console.log('API_URL:', API_URL);
 
 // Helper function to get the authentication token
 const getAuthToken = () => {
@@ -239,6 +240,95 @@ export const eventsAPI = {
       console.error('Register event error:', error);
       throw error;
     }
+  }
+};
+
+// Create a generic API client for direct HTTP calls
+export const apiClient = {
+  get: async (url) => {
+    const fullUrl = `${API_URL}${url}`;
+    console.log('API GET request to:', fullUrl);
+    console.log('Headers:', getHeaders());
+    
+    const response = await fetch(fullUrl, {
+      method: 'GET',
+      headers: getHeaders()
+    });
+    
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.log('Error response:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+    }
+    
+    const data = await response.json();
+    console.log('Response data:', data);
+    return data;
+  },
+  
+  post: async (url, data) => {
+    const fullUrl = `${API_URL}${url}`;
+    console.log('API POST request to:', fullUrl);
+    console.log('POST data:', data);
+    console.log('Headers:', getHeaders());
+    
+    try {
+      const response = await fetch(fullUrl, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(data)
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log('Response data:', responseData);
+      } catch (parseError) {
+        console.error('Error parsing response JSON:', parseError);
+        throw new Error(`HTTP error! status: ${response.status}, message: Could not parse response`);
+      }
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}, message: ${JSON.stringify(responseData)}`);
+      }
+      
+      return responseData;
+    } catch (error) {
+      console.error('POST request error:', error);
+      throw error;
+    }
+  },
+  
+  put: async (url, data) => {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+  
+  delete: async (url) => {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
 };
 

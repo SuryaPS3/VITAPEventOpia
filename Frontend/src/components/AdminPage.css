@@ -5,6 +5,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+/* Header */
 .dashboard-header {
   background: rgba(30, 41, 59, 0.9);
   padding: 20px 40px;
@@ -28,6 +29,7 @@
   background-clip: text;
 }
 
+/* Navigation */
 .dashboard-nav {
   display: flex;
   justify-content: center;
@@ -85,6 +87,7 @@
   font-weight: 600;
   transition: all 0.3s ease;
   margin-top: 15px;
+  margin-bottom: 17px;
 }
 
 .logout-btn:hover {
@@ -93,6 +96,7 @@
   box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
 }
 
+/* Content Section */
 .dashboard-content {
   padding: 40px;
   max-width: 1400px;
@@ -102,6 +106,8 @@
 
 .admin-section {
   text-align: center;
+  position: relative;
+  min-height: 400px;
 }
 
 .admin-section h2 {
@@ -303,11 +309,6 @@
   transform: translateY(-2px);
 }
 
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-  color: #94a3b8;
-}
-
 .form-group textarea {
   resize: vertical;
   min-height: 120px;
@@ -323,36 +324,8 @@
   font-size: 1.1rem;
   font-weight: 600;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
   width: 100%;
   margin-top: 20px;
-}
-
-.submit-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(45deg, #6f42c1, #00d4ff);
-  transition: left 0.3s ease;
-  z-index: -1;
-}
-
-.submit-btn:hover::before {
-  left: 0;
-}
-
-.submit-btn span {
-  position: relative;
-  z-index: 1;
-}
-
-.submit-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(157, 80, 187, 0.5);
 }
 
 /* Requests Section */
@@ -378,77 +351,19 @@
   border-color: rgba(157, 80, 187, 0.4);
 }
 
-.request-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.request-title {
-  color: #f8fafc;
-  font-size: 1.4rem;
-  font-weight: 600;
-}
-
-.request-status {
-  padding: 6px 15px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.request-details {
-  display: flex;
-  gap: 25px;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
-}
-
-.request-detail {
-  display: flex;
-  align-items: center;
-  color: #94a3b8;
-  font-size: 0.9rem;
-}
-
-.request-detail span {
-  margin-left: 8px;
-}
-
-.request-description {
-  color: #94a3b8;
-  line-height: 1.6;
-  margin-bottom: 20px;
-  font-size: 1rem;
-}
-
-.request-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.request-footer small {
-  color: #64748b;
-  font-size: 0.9rem;
-}
-
-.pending-badge {
-  background: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid rgba(251, 191, 36, 0.3);
-}
-
-/* Empty States */
+/* ✅ Empty State — perfectly centered */
 .empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 60px 20px;
   color: #94a3b8;
+  width: 100%;
 }
 
 .empty-state h3 {
@@ -479,7 +394,7 @@
   box-shadow: 0 8px 25px rgba(157, 80, 187, 0.5);
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
   .dashboard-header {
     flex-direction: column;
@@ -490,19 +405,10 @@
 
   .dashboard-header h1 {
     font-size: 1.8rem;
-    margin-bottom: 20px;
   }
 
   .dashboard-nav {
-    width: 100%;
-    justify-content: center;
     flex-wrap: wrap;
-  }
-
-  .nav-btn {
-    flex: unset;
-    min-width: 120px;
-    text-align: center;
   }
 
   .dashboard-content {
@@ -515,29 +421,10 @@
 
   .form-row {
     grid-template-columns: 1fr;
-    gap: 20px;
   }
 
   .event-form {
     padding: 25px;
-    margin: 0 auto;
-  }
-
-  .request-details {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .request-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .request-footer {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
   }
 }
 

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import { authAPI } from './api/client.js';
+import { authAPI, apiClient } from './api/client.js';
 import Login from './components/LoginModal.jsx';
 import RoleSelection from './components/AccessRoleDashboard.jsx';
 import VisitorPage from './components/VisitorPage.jsx';
@@ -89,6 +89,111 @@ const App = () => {
   const [showRoleSelection, setShowRoleSelection] = useState(false);
   const [currentPage, setCurrentPage] = useState(null); // Which dashboard is shown
   const [showLogin, setShowLogin] = useState(true); // Controls login modal visibility
+  const [events, setEvents] = useState([]); // Real events from backend
+  const [loading, setLoading] = useState(false);
+
+  // Fetch approved events for student dashboard
+  const fetchApprovedEvents = async () => {
+    try {
+      setLoading(true);
+      // Fetch only approved events for students to see
+      const response = await apiClient.get('/events?status=approved');
+      if (response.success) {
+        // Map events to match the expected format for VisitorPage
+        const mappedEvents = response.events.map(event => ({
+          id: event.id,
+          title: event.title,
+          category: event.category,
+          date: new Date(event.event_date).toLocaleDateString(),
+          time: event.event_time,
+          venue: event.venue,
+          fee: event.fee || 'Free',
+          clubName: event.club_name || 'Unknown Club',
+          organizer: event.created_by_name || 'Unknown',
+          attendees: event.expected_attendees || 0,
+          status: event.status,
+          description: event.description,
+          categoryKey: getCategoryKey(event.category)
+        }));
+        setEvents(mappedEvents);
+      }
+    } catch (error) {
+      console.error('Failed to fetch events:', error);
+      // Fallback to dummy data if backend fails
+      setEvents(dummyEvents);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to map category to category key for filtering
+  const getCategoryKey = (category) => {
+    const categoryMap = {
+      'Cultural': 'cultural',
+      'Dance': 'dance',
+      'Music': 'western',
+      'Classical': 'classical',
+      'Theatre': 'drama',
+      'Literary': 'literary',
+      'Technical': 'technical',
+      'Sports': 'sports',
+      'Workshop': 'workshop'
+    };
+    return categoryMap[category] || 'all';
+  };
+
+  // Create event function for admin
+  const createEvent = async (eventData) => {
+    try {
+      console.log('Creating event with data:', eventData);
+      
+      // Prepare the event data for backend
+      const eventPayload = {
+        title: eventData.title,
+        description: eventData.description || '',
+        category: eventData.category || 'General',
+        event_date: eventData.date,
+        event_time: eventData.time || '10:00:00',
+        venue: eventData.venue,
+        fee: eventData.fee || 'Free',
+        expected_attendees: parseInt(eventData.expectedAttendees) || 0,
+        club_id: 1 // Default to club 1, you can make this dynamic later
+      };
+
+      console.log('Sending payload to backend:', eventPayload);
+      
+      const response = await apiClient.post('/events', eventPayload);
+      
+      console.log('Backend response:', response);
+
+      if (response.success) {
+        alert('🎉 Event created successfully! It is now pending approval from the department head.');
+        // Refresh events to show updated counts
+        fetchApprovedEvents();
+        return true;
+      } else {
+        throw new Error(response.message || 'Failed to create event');
+      }
+    } catch (error) {
+      console.error('Event creation error:', error);
+      
+      // Show detailed error message
+      let errorMessage = 'Failed to create event: ';
+      if (error.message.includes('HTTP error')) {
+        errorMessage += 'Server error. Please check your connection and try again.';
+      } else {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
+      return false;
+    }
+  };
+
+  // Load events when component mounts
+  useEffect(() => {
+    fetchApprovedEvents();
+  }, []);
 
   // ✅ Backend-connected login logic with fallback to mock
   const handleLogin = async (credentials) => {
@@ -161,6 +266,7 @@ const App = () => {
 
   // ✅ Handle logout
   const handleLogout = () => {
+    authAPI.logout(); // Clear localStorage
     setUser(null);
     setShowRoleSelection(false);
     setCurrentPage(null);
@@ -171,13 +277,13 @@ const App = () => {
   const renderDashboard = () => {
     switch (currentPage) {
       case 'visitor':
-        return <VisitorPage user={user} onLogout={handleLogout} events={dummyEvents} clubs={dummyClubs} />;
+        return <VisitorPage user={user} onLogout={handleLogout} events={events} clubs={dummyClubs} loading={loading} />;
       case 'admin':
-        return <AdminPage user={user} onLogout={handleLogout} events={dummyEvents} clubs={dummyClubs} />;
+        return <AdminPage user={user} onLogout={handleLogout} events={events} onPostEvent={createEvent} loading={loading} />;
       case 'faculty':
         return <FacultyPage user={user} onLogout={handleLogout} events={dummyEvents} clubs={dummyClubs} />;
       case 'head':
-        return <HeadPage user={user} onLogout={handleLogout} events={dummyEvents} clubs={dummyClubs} />;
+        return <HeadPage user={user} onLogout={handleLogout} onEventStatusChanged={fetchApprovedEvents} />;
       default:
         return null;
     }
