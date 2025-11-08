@@ -6,6 +6,11 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+.header-logo {
+    height: 36vh;
+    margin-bottom: 5vh;
+}
+
 .dashboard-header {
   background: rgba(30, 41, 59, 0.9);
   padding: 20px 40px;

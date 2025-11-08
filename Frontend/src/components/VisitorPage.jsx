@@ -42,9 +42,29 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
   const handleEventClick = (event) => setSelectedEvent(event);
   const handleRegistration = (event) => {
     if (!user) {
-      onShowLoginModal();
+      if (onShowLoginModal) {
+        onShowLoginModal();
+      } else {
+        alert('Please login to register for events');
+      }
     } else {
-      onShowRegistrationModal(event);
+      // Debug: Log the event object to check if registration_form_url exists
+      console.log('Event registration clicked:', event);
+      console.log('Registration form URL:', event.registration_form_url);
+      
+      // If event has a registration form URL, open it in a new tab
+      if (event.registration_form_url) {
+        console.log('Opening registration form in new tab:', event.registration_form_url);
+        window.open(event.registration_form_url, '_blank');
+      } else {
+        console.log('No registration form URL found, showing fallback message');
+        // Fallback: show a message if no registration URL is provided
+        if (onShowRegistrationModal) {
+          onShowRegistrationModal(event);
+        } else {
+          alert(`Registration for "${event.title}" - Please contact the event organizer for registration details.`);
+        }
+      }
     }
   };
 

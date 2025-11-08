@@ -113,6 +113,7 @@ const App = () => {
           attendees: event.expected_attendees || 0,
           status: event.status,
           description: event.description,
+          registration_form_url: event.registration_form_url, // Add this field for Google Form URLs
           categoryKey: getCategoryKey(event.category)
         }));
         setEvents(mappedEvents);
@@ -157,7 +158,8 @@ const App = () => {
         venue: eventData.venue,
         fee: eventData.fee || 'Free',
         expected_attendees: parseInt(eventData.expectedAttendees) || 0,
-        club_id: 1 // Default to club 1, you can make this dynamic later
+        club_id: 1, // Default to club 1, you can make this dynamic later
+        registration_form_url: eventData.registrationLink || null
       };
 
       console.log('Sending payload to backend:', eventPayload);
@@ -273,11 +275,29 @@ const App = () => {
     setShowLogin(true);
   };
 
+  // Handle showing login modal for visitor page
+  const handleShowLoginModal = () => {
+    setShowLogin(true);
+  };
+
+  // Handle showing registration modal for visitor page
+  const handleShowRegistrationModal = (event) => {
+    alert(`Registration for "${event.title}"\n\nPlease contact the event organizer for registration details.\n\nEvent: ${event.title}\nVenue: ${event.venue}\nDate: ${event.date}\nTime: ${event.time}`);
+  };
+
   // ✅ Render the appropriate dashboard based on the current page
   const renderDashboard = () => {
     switch (currentPage) {
       case 'visitor':
-        return <VisitorPage user={user} onLogout={handleLogout} events={events} clubs={dummyClubs} loading={loading} />;
+        return <VisitorPage 
+          user={user} 
+          onLogout={handleLogout} 
+          onShowLoginModal={handleShowLoginModal}
+          onShowRegistrationModal={handleShowRegistrationModal}
+          events={events} 
+          clubs={dummyClubs} 
+          loading={loading} 
+        />;
       case 'admin':
         return <AdminPage user={user} onLogout={handleLogout} events={events} onPostEvent={createEvent} loading={loading} />;
       case 'faculty':

@@ -515,7 +515,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
     <div className="head-dashboard">
       <div className="dashboard-header">
         <img src="/VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
-        <h1>Head Dashboard</h1>
+        <h1>Assistant Director Dashboard</h1>
         <div className="dashboard-nav">
           <button
             className={`nav-btn ${activeSection === 'approvals' ? 'active' : ''}`}
