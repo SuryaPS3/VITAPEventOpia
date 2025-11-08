@@ -8,10 +8,7 @@ const FacultyPage = ({ user, onLogout, events, clubs }) => {
   const stats = {
     activeEvents: events.filter(e => e.status === 'approved').length,
     totalClubs: clubs.length,
-    pendingApprovals: events.filter(e => e.status === 'pending').length,
-    totalStudents: 450, // Static data for now
-    monthlyEvents: 24, // Static data for now
-    successRate: 94 // Static data for now
+    pendingApprovals: events.filter(e => e.status === 'pending').length
   };
 
   const getStatusColor = (status) => {
@@ -55,43 +52,10 @@ const FacultyPage = ({ user, onLogout, events, clubs }) => {
             <div className="stat-trend">Needs review</div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon">👥</div>
-          <div className="stat-content">
-            <h3>Total Students</h3>
-            <div className="stat-number">{stats.totalStudents}</div>
-            <div className="stat-trend">Participating</div>
-          </div>
-        </div>
+
       </div>
 
       <div className="overview-content">
-        <div className="recent-activity">
-          <h3>Recent Activity</h3>
-          <div className="activity-list">
-            <div className="activity-item">
-              <div className="activity-icon">✅</div>
-              <div className="activity-content">
-                <div className="activity-title">Heritage Festival Approved</div>
-                <div className="activity-meta">Cultural Heritage Club • 2 hours ago</div>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon">📝</div>
-              <div className="activity-content">
-                <div className="activity-title">New Event Proposal Submitted</div>
-                <div className="activity-meta">Innovation Club • 5 hours ago</div>
-              </div>
-            </div>
-            <div className="activity-item">
-              <div className="activity-icon">👥</div>
-              <div className="activity-content">
-                <div className="activity-title">45 New Student Registrations</div>
-                <div className="activity-meta">Various clubs • 1 day ago</div>
-              </div>
-            </div>
-          </div>
-        </div>
         <div className="quick-actions">
           <h3>Quick Actions</h3>
           <div className="action-buttons">
@@ -151,9 +115,6 @@ const FacultyPage = ({ user, onLogout, events, clubs }) => {
             <div className="event-actions">
               <button className="action-btn-small primary">View Details</button>
               <button className="action-btn-small secondary">Edit</button>
-              {event.status === 'pending_review' && (
-                <button className="action-btn-small success">Approve</button>
-              )}
             </div>
           </div>
         ))}

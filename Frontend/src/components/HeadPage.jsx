@@ -15,35 +15,42 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
   const [approvalComments, setApprovalComments] = useState('');
   const [processing, setProcessing] = useState(false);
 
-  // Mock data for other sections
-  const [recentDecisions, setRecentDecisions] = useState([
-    {
-      id: 1, eventTitle: 'Spring Dance Competition', decision: 'approved', date: '2025-03-15', budget: '₹45,000', club: 'Dance Collective'
-    },
-    {
-      id: 2, eventTitle: 'Literary Workshop Series', decision: 'approved', date: '2025-03-14', budget: '₹25,000', club: 'Literary Circle'
-    },
-    {
-      id: 3, eventTitle: 'Outdoor Sports Carnival', decision: 'declined', date: '2025-03-13', budget: '₹1,20,000', club: 'Sports Club', reason: 'Budget exceeds allocated limit'
-    }
-  ]);
-
-  const systemStats = {
-    totalEventsThisMonth: 24,
-    activeUsers: 1247,
-    totalBudgetAllocated: '₹8,50,000',
-    eventSuccessRate: 94,
-    pendingApprovals: pendingEvents.length,
-    activeClubs: 12,
-    totalStudents: 2800,
-    facultyMembers: 45
-  };
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [recentDecisions, setRecentDecisions] = useState([]);
+  const [systemStats, setSystemStats] = useState({});
 
   useEffect(() => {
     if (activeSection === 'approvals') {
       fetchPendingEvents();
     }
+    if (activeSection === 'userManagement') {
+      fetchPendingUsers();
+    }
+    fetchSystemStats();
+    fetchRecentDecisions();
   }, [activeSection]);
+
+  const fetchSystemStats = async () => {
+    try {
+      const response = await apiClient.get('/stats');
+      if (response.success) {
+        setSystemStats(response.stats);
+      }
+    } catch (error) {
+      console.error('Failed to fetch system stats:', error);
+    }
+  };
+
+  const fetchRecentDecisions = async () => {
+    try {
+      const response = await apiClient.get('/stats/recent-decisions');
+      if (response.success) {
+        setRecentDecisions(response.decisions);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent decisions:', error);
+    }
+  };
 
   const fetchPendingEvents = async () => {
     try {
@@ -438,6 +445,71 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
     </div>
   );
 
+  const fetchPendingUsers = async () => {
+    try {
+      const response = await apiClient.get('/users/pending');
+      if (response.success) {
+        setPendingUsers(response.users);
+      }
+    } catch (error) {
+      console.error('Failed to fetch pending users:', error);
+    }
+  };
+
+  const handleApproveUser = async (userId) => {
+    try {
+      const response = await apiClient.put(`/users/${userId}/approve`);
+      if (response.success) {
+        alert('User promotion approved successfully!');
+        setPendingUsers(prev => prev.filter(user => user.id !== userId));
+      }
+    } catch (err) {
+      alert('Failed to approve user promotion: ' + (err.message || 'Unknown error'));
+      console.error('Error approving user:', err);
+    }
+  };
+
+  const handleRejectUser = async (userId) => {
+    try {
+      const response = await apiClient.put(`/users/${userId}/reject`);
+      if (response.success) {
+        alert('User promotion rejected successfully!');
+        setPendingUsers(prev => prev.filter(user => user.id !== userId));
+      }
+    } catch (err) {
+      alert('Failed to reject user promotion: ' + (err.message || 'Unknown error'));
+      console.error('Error rejecting user:', err);
+    }
+  };
+
+  const renderUserManagementSection = () => (
+    <div className="head-section">
+      <h2>User Promotion Requests</h2>
+      <div className="user-requests">
+        {pendingUsers.length === 0 ? (
+          <div className="empty-requests">
+            <h3>No Pending Requests</h3>
+            <p>All user promotion requests have been reviewed.</p>
+          </div>
+        ) : (
+          pendingUsers.map(user => (
+            <div key={user.id} className="user-card">
+              <div className="user-details">
+                <div className="user-name">{user.first_name} {user.last_name}</div>
+                <div className="user-email">{user.email}</div>
+                <div className="user-role">Requested Role: {user.requested_role}</div>
+              </div>
+              <div className="user-actions">
+                <button className="approve-btn" onClick={() => handleApproveUser(user.id)}>Approve</button>
+                <button className="reject-btn" onClick={() => handleRejectUser(user.id)}>Reject</button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   const renderManagementSection = () => (
     <div className="head-section">
       <h2>System Management</h2>
@@ -536,6 +608,12 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
           >
             System Management
           </button>
+          <button
+            className={`nav-btn ${activeSection === 'userManagement' ? 'active' : ''}`}
+            onClick={() => setActiveSection('userManagement')}
+          >
+            User Management ({pendingUsers.length})
+          </button>
           <button className="logout-btn" onClick={onLogout}>Logout</button>
         </div>
       </div>
@@ -543,6 +621,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
         {activeSection === 'approvals' && renderApprovalsSection()}
         {activeSection === 'analytics' && renderAnalyticsSection()}
         {activeSection === 'management' && renderManagementSection()}
+        {activeSection === 'userManagement' && renderUserManagementSection()}
       </div>
       <Footer />
     </div>

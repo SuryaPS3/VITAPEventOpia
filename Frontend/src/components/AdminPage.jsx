@@ -305,7 +305,8 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
             Create Event
           </button>
           <button className={`nav-btn ${activeSection === 'requests' ? 'active' : ''}`} onClick={() => setActiveSection('requests')}>
-            Requests ({events.filter(r => r.status === 'pending' && r.requestedBy === user.name).length})
+            Requests 
+            {/* ({events.filter(r => r.status === 'pending' && r.requestedBy === user.name).length}) */}
           </button>
           <button className="logout-btn" onClick={onLogout}>Logout</button>
         </div>
