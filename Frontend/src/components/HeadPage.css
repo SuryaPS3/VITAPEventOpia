@@ -26,6 +26,8 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .dashboard-nav {
@@ -483,6 +485,7 @@
     opacity: 0;
     transform: translateY(-30px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -788,18 +791,21 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 215, 0, 0.1),
-    transparent
-  );
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 215, 0, 0.1),
+      transparent);
   animation: shimmer 3s infinite;
 }
 
 @keyframes shimmer {
-  0% { left: -100%; }
-  100% { left: 100%; }
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 100%;
+  }
 }
 
 .empty-approvals h3 {
@@ -851,4 +857,294 @@
   .review-btn {
     width: 100%;
   }
+}
+
+/* --- Recent Approval Decisions Section (Final Centered Version) --- */
+.recent-decisions-section {
+  margin-top: 2.5rem;
+  padding: 2rem 2.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+  color: #f5f6fa;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.recent-decisions-section h3 {
+  text-align: center;
+  color: #b86bff;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 0.8rem;
+  letter-spacing: 0.6px;
+}
+
+/* Scrollable List */
+.decisions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.8rem;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Scrollbar Styling */
+.decisions-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.decisions-list::-webkit-scrollbar-thumb {
+  background: rgba(160, 140, 255, 0.4);
+  border-radius: 10px;
+}
+
+.decisions-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 160, 255, 0.6);
+}
+
+/* Each Decision Card */
+.decision-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 1.6rem 1.8rem;
+  transition: all 0.3s ease;
+}
+
+.decision-item:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-4px);
+  box-shadow: 0 4px 18px rgba(160, 120, 255, 0.25);
+}
+
+/* Centered Content */
+.decision-content {
+  flex: 1;
+  text-align: center;
+}
+
+.decision-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.8rem;
+  /* increased spacing between title and meta */
+  letter-spacing: 0.4px;
+}
+
+.decision-meta {
+  font-size: 0.95rem;
+  color: #b7d6ff;
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.decision-reason {
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+  color: #ffcc91;
+  line-height: 1.5;
+}
+
+/* Status Badge (Right-aligned, Classic Style) */
+.decision-status {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  min-width: 110px;
+}
+
+/* Color Styles */
+.decision-status.approved {
+  background: rgba(40, 180, 99, 0.2);
+  color: #7cffcb;
+  border: 1px solid rgba(40, 180, 99, 0.4);
+}
+
+.decision-status.rejected,
+.decision-status.declined {
+  background: rgba(255, 99, 99, 0.2);
+  color: #ff7676;
+  border: 1px solid rgba(255, 99, 99, 0.4);
+}
+
+.decision-status.pending {
+  background: rgba(255, 206, 86, 0.2);
+  color: #ffe78a;
+  border: 1px solid rgba(255, 206, 86, 0.4);
+}
+
+/* ================================
+   EVENT CARD - PROFESSIONAL DARK DESIGN
+================================== */
+
+.approval-card {
+  width: 90%;
+  max-width: 700px;
+  background: rgba(20, 24, 40, 0.85);
+  border: 1px solid rgba(130, 90, 255, 0.25);
+  border-top: 3px solid transparent;
+  border-radius: 16px;
+  padding: 1.8rem 1.8rem 1.3rem;
+  margin: 0 auto;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.approval-card:hover {
+  transform: translateY(-3px);
+  border-top: 3px solid #a855f7;
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.25);
+}
+
+/* ==== Event Header (Title + Status) ==== */
+.approval-header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.approval-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f9fafb;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.3rem;
+}
+
+.approval-meta {
+  font-size: 0.95rem;
+  color: #cfcff2;
+  margin-bottom: 0.4rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.approval-priority {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: #f0d9ff;
+  background: linear-gradient(90deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.25));
+  border: 1px solid rgba(236, 72, 153, 0.2);
+}
+
+.approval-date {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-top: 3px;
+}
+
+/* ==== Details Grid ==== */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem 1.5rem;
+  margin-top: 1.5rem;
+  padding: 0.8rem 1rem;
+  background: rgba(35, 35, 60, 0.4);
+  border: 1px solid rgba(150, 100, 255, 0.15);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.detail-item {
+  line-height: 1.4;
+}
+
+.detail-item strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #b892ff;
+  margin-bottom: 3px;
+}
+
+.detail-item span {
+  color: #e5e7eb;
+  font-size: 0.9rem;
+}
+
+/* ==== Description Section ==== */
+.description-section {
+  background: rgba(35, 35, 60, 0.4);
+  border: 1px solid rgba(150, 100, 255, 0.15);
+  border-radius: 10px;
+  margin-top: 1.5rem;
+  padding: 1rem 1.2rem;
+  text-align: left;
+}
+
+.description-section strong {
+  color: #b892ff;
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.description-section p {
+  font-size: 0.9rem;
+  color: #e5e7eb;
+  line-height: 1.5;
+}
+
+/* ==== Review Button ==== */
+.approval-actions {
+  text-align: center;
+  margin-top: 1.6rem;
+}
+
+.approve-btn {
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-radius: 25px;
+  padding: 0.7rem 1.8rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+}
+
+.approve-btn:hover {
+  background: linear-gradient(90deg, #9333ea, #db2777);
+  transform: translateY(-2px);
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.35);
+}
+
+/* ==== Subtle animation ==== */
+@keyframes fadeInCard {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.approval-card {
+  animation: fadeInCard 0.4s ease both;
 }

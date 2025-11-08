@@ -146,7 +146,7 @@ const App = () => {
   const createEvent = async (eventData) => {
     try {
       console.log('Creating event with data:', eventData);
-      
+
       // Prepare the event data for backend
       const eventPayload = {
         title: eventData.title,
@@ -161,9 +161,9 @@ const App = () => {
       };
 
       console.log('Sending payload to backend:', eventPayload);
-      
+
       const response = await apiClient.post('/events', eventPayload);
-      
+
       console.log('Backend response:', response);
 
       if (response.success) {
@@ -176,7 +176,7 @@ const App = () => {
       }
     } catch (error) {
       console.error('Event creation error:', error);
-      
+
       // Show detailed error message
       let errorMessage = 'Failed to create event: ';
       if (error.message.includes('HTTP error')) {
@@ -184,7 +184,7 @@ const App = () => {
       } else {
         errorMessage += error.message;
       }
-      
+
       alert(errorMessage);
       return false;
     }
@@ -198,27 +198,27 @@ const App = () => {
   // ✅ Backend-connected login logic with fallback to mock
   const handleLogin = async (credentials) => {
     const { email, password } = credentials;
-    
+
     try {
       // Try backend authentication first
       const response = await authAPI.login({ email, password });
-      
+
       if (response.success && response.user) {
         // Map backend role to frontend role
         const roleMapping = {
           'admin': 'admin',
-          'club_faculty': 'faculty', 
+          'club_faculty': 'faculty',
           'department_head': 'head',
           'club_member': 'visitor'
         };
-        
+
         const mappedRole = roleMapping[response.user.role] || 'visitor';
         const user = {
           ...response.user,
           name: `${response.user.first_name} ${response.user.last_name}`,
           roles: [mappedRole]
         };
-        
+
         setUser(user);
         setCurrentPage(mappedRole);
         setShowLogin(false);
@@ -228,7 +228,7 @@ const App = () => {
       }
     } catch (backendError) {
       console.warn('Backend login failed, trying mock users:', backendError.message);
-      
+
       // Fallback to mock authentication
       const mockUsers = {
         'student@vit.ac.in': { password: 'student123', name: 'Student User', roles: ['visitor'] },
