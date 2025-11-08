@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { authAPI } from '../api/client.js';
 import './CreateAccountPage.css';
 
@@ -61,9 +62,13 @@ const CreateAccountPage = () => {
           {success && <p className="success-message">{success}</p>}
           <button type="submit">Create Account</button>
         </form>
+        <div className="login-link">
+          <p>Already have an account? <Link to="/">Log in</Link></p>
+        </div>
       </div>
     </div>
   );
 };
 
 export default CreateAccountPage;
+
