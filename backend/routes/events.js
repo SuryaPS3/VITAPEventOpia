@@ -51,6 +51,7 @@ router.get('/', async (req, res) => {
         e.venue,
         e.fee,
         e.expected_attendees,
+        e.registration_form_url,
         e.status,
         e.created_at,
         c.name as club_name,
@@ -201,7 +202,8 @@ router.post('/', authenticateToken, authorize('club_faculty', 'admin'), async (r
       venue,
       fee,
       expected_attendees,
-      club_id
+      club_id,
+      registration_form_url
     } = req.body;
 
     // Validation
@@ -226,15 +228,16 @@ router.post('/', authenticateToken, authorize('club_faculty', 'admin'), async (r
       .input('club_id', sql.Int, club_id || 1)
       .input('created_by', sql.Int, req.user.id)
       .input('status', sql.NVarChar, 'pending')
+      .input('registration_form_url', sql.NVarChar, registration_form_url || null)
       .query(`
         INSERT INTO Events (
           title, description, category, event_date, event_time,
-          venue, fee, expected_attendees, club_id, created_by, status
+          venue, fee, expected_attendees, club_id, created_by, status, registration_form_url
         )
         OUTPUT INSERTED.*
         VALUES (
           @title, @description, @category, @event_date, @event_time,
-          @venue, @fee, @expected_attendees, @club_id, @created_by, @status
+          @venue, @fee, @expected_attendees, @club_id, @created_by, @status, @registration_form_url
         )
       `);
 

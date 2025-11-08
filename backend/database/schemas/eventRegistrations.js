@@ -11,7 +11,8 @@ export const createEventRegistrationsTable = async (pool) => {
       additional_info NVARCHAR(MAX),
       FOREIGN KEY (event_id) REFERENCES Events(id),
       FOREIGN KEY (user_id) REFERENCES Users(id),
-      UNIQUE(event_id, user_id)
+      UNIQUE(event_id, user_id),
+      registration_url NVARCHAR(1024)
     )
   `);
   console.log('✅ EventRegistrations table created');

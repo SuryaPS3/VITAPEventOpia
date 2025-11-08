@@ -14,6 +14,7 @@ export const createEventsTable = async (pool) => {
       expected_attendees INT DEFAULT 0,
       registration_start DATETIME2,
       registration_end DATETIME2,
+      registration_form_url NVARCHAR(1024),
       status NVARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed', 'cancelled')),
       created_by INT NOT NULL,
       approved_by INT,
