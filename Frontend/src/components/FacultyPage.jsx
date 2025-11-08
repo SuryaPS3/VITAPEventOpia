@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './FacultyPage.css';
+import Footer from './Footer.jsx';
 
 const FacultyPage = ({ user, onLogout, events, clubs }) => {
   const [activeSection, setActiveSection] = useState('overview');
@@ -214,6 +215,7 @@ const FacultyPage = ({ user, onLogout, events, clubs }) => {
         {activeSection === 'events' && renderEventsSection()}
         {activeSection === 'clubs' && renderClubsSection()}
       </div>
+      <Footer />
     </div>
   );
 };

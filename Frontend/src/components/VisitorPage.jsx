@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './VisitorPage.css';
+import Footer from './Footer.jsx';
 
 const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout, events, loading }) => {
   const [activeTab, setActiveTab] = useState('all');
@@ -203,6 +204,7 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
           </div>
         </div>
       )}
+      <Footer />
     </div>
   );
 };

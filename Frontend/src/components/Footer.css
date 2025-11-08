@@ -1,0 +1,38 @@
+.app-footer {
+  background-color: #2d1b69;
+  color: white;
+  padding: 20px 0;
+  text-align: center;
+  margin-top: auto;
+  border-top: 1px solid #4a3096;
+  font-size: 14px;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.footer-content p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Make sure the footer sticks to bottom */
+.app-footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+/* For components that need full height layout */
+.page-with-footer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-with-footer .main-content {
+  flex: 1;
+}
