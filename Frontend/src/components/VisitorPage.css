@@ -30,37 +30,50 @@
   box-shadow: 0 0 20px rgba(100, 150, 255, 0.2);
 }
 
-.shape:nth-child(1) { 
-  width: 100px; 
-  height: 100px; 
-  top: 15%; 
-  left: 8%; 
+.shape:nth-child(1) {
+  width: 100px;
+  height: 100px;
+  top: 15%;
+  left: 8%;
   animation-delay: 0s;
   background: rgba(138, 43, 226, 0.15);
 }
 
-.shape:nth-child(2) { 
-  width: 150px; 
-  height: 150px; 
-  top: 65%; 
-  left: 75%; 
+.shape:nth-child(2) {
+  width: 150px;
+  height: 150px;
+  top: 65%;
+  left: 75%;
   animation-delay: 3s;
   background: rgba(75, 0, 130, 0.12);
 }
 
-.shape:nth-child(3) { 
-  width: 80px; 
-  height: 80px; 
-  top: 85%; 
-  left: 15%; 
+.shape:nth-child(3) {
+  width: 80px;
+  height: 80px;
+  top: 85%;
+  left: 15%;
   animation-delay: 6s;
   background: rgba(72, 61, 139, 0.18);
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-  33% { transform: translateY(-30px) rotate(120deg); opacity: 0.6; }
-  66% { transform: translateY(15px) rotate(240deg); opacity: 0.4; }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.3;
+  }
+
+  33% {
+    transform: translateY(-30px) rotate(120deg);
+    opacity: 0.6;
+  }
+
+  66% {
+    transform: translateY(15px) rotate(240deg);
+    opacity: 0.4;
+  }
 }
 
 .container {
@@ -161,7 +174,7 @@
   border: 2px solid rgba(157, 80, 187, 0.3);
   border-radius: 50px;
   font-size: 1.1rem;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(20px);
   background: rgba(30, 41, 59, 0.8);
   color: #e0e6ed;
@@ -235,7 +248,7 @@
   border-radius: 25px;
   padding: 35px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
   transition: all 0.4s ease;
   cursor: pointer;
   border: 1px solid rgba(157, 80, 187, 0.2);
@@ -290,7 +303,7 @@
   backdrop-filter: blur(20px);
   border-radius: 30px;
   padding: 50px;
-  box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
   position: relative;
   border: 1px solid rgba(157, 80, 187, 0.2);
 }
@@ -370,7 +383,7 @@
   background: rgba(51, 65, 85, 0.6);
   border-radius: 20px;
   padding: 30px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
   transition: all 0.4s ease;
   border: 2px solid transparent;
   position: relative;
@@ -536,7 +549,7 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(10px);
   animation: fadeIn 0.3s ease;
   align-items: center;
@@ -544,8 +557,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
@@ -555,15 +573,22 @@
   width: 90%;
   max-width: 700px;
   position: relative;
-  box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
   animation: slideIn 0.3s ease;
   border: 1px solid rgba(157, 80, 187, 0.3);
   color: #e0e6ed;
 }
 
 @keyframes slideIn {
-  from { transform: translateY(-50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .close {
@@ -717,44 +742,46 @@
   .logo {
     font-size: 2.5rem;
   }
-  
+
   .login-button-container {
     position: relative;
     margin-bottom: 20px;
   }
-  
+
   .clubs-grid,
   .events-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .tabs {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .tab-button {
     width: 250px;
   }
-  
+
   .event-header {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .modal-content {
     margin: 10% auto;
     padding: 30px;
   }
-  
+
   .event-detail-info {
     grid-template-columns: 1fr;
   }
 }
+
 .header-logo {
   height: 200px;
   margin-bottom: 20px;
 }
+
 .login-logo {
   height: 200px;
   margin-bottom: 20px;
@@ -781,7 +808,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-events p {

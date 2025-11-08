@@ -42,11 +42,24 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
   const handleEventClick = (event) => setSelectedEvent(event);
   const handleRegistration = (event) => {
     if (!user) {
-      onShowLoginModal();
-    } else {
+      onShowLoginModal?.();
+      return;
+    }
+
+    if (event.registrationLink && event.registrationLink.trim() !== '') {
+      window.open(event.registrationLink, '_blank');
+      return;
+    }
+
+    // Fallback if registrationLink not provided
+    if (typeof onShowRegistrationModal === 'function') {
       onShowRegistrationModal(event);
+    } else {
+      console.warn('⚠️ onShowRegistrationModal is not defined, and no registration link found for this event.');
+      alert('Registration link is not available for this event.');
     }
   };
+
 
   const scrollToEvents = () => {
     const eventsSection = document.querySelector('.events-section');
@@ -69,7 +82,7 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
       </div>
       <div className="container">
         <header className="header">
-          <img src="../public/Logo-removebg-preview (1).svg" alt="VIT Logo" className="header-logo" />
+          <img src="../VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
           <div className="login-button-container">
             {user ? (
               <button className="login-btn" onClick={onLogout}><span>👋 {user.name}</span></button>
