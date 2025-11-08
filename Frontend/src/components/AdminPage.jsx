@@ -295,7 +295,7 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
-        <img src="/Logo-removebg-preview (1).svg" alt="VIT Logo" className="header-logo" />
+        <img src="/VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
         <div className="dashboard-nav">
           <button className={`nav-btn ${activeSection === 'my-events' ? 'active' : ''}`} onClick={() => setActiveSection('my-events')}>
             My Events

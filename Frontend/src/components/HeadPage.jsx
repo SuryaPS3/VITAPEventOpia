@@ -5,7 +5,7 @@ import './HeadPage.css';
 const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
   // Tab management
   const [activeSection, setActiveSection] = useState('approvals');
-  
+
   // Approval system state
   const [pendingEvents, setPendingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +55,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
       setError(null);
     } catch (err) {
       console.error('Error fetching pending events:', err);
-      
+
       // If it's a 403 error, the token might be invalid or expired
       if (err.message.includes('403')) {
         setError(`Access denied. Your session may have expired. Please logout and login again.`);
@@ -84,7 +84,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
         setPendingEvents(prev => prev.filter(event => event.id !== eventId));
         setSelectedEvent(null);
         setApprovalComments('');
-        
+
         // Refresh the approved events for student dashboard
         if (onEventStatusChanged) {
           onEventStatusChanged();
@@ -107,7 +107,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
     try {
       setProcessing(true);
       const response = await apiClient.put(`/events/${eventId}/reject`, {
-        comments: approvalComments.trim()
+        reason: approvalComments.trim()
       });
 
       if (response.success) {
@@ -115,7 +115,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
         setPendingEvents(prev => prev.filter(event => event.id !== eventId));
         setSelectedEvent(null);
         setApprovalComments('');
-        
+
         // Refresh the student dashboard (rejected events won't show anyway)
         if (onEventStatusChanged) {
           onEventStatusChanged();
@@ -246,8 +246,8 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
                     </div>
                   </div>
                   <div className="approval-actions">
-                    <button 
-                      className="approve-btn" 
+                    <button
+                      className="approve-btn"
                       onClick={() => viewEventDetails(event)}
                     >
                       ✓ Review & Decide
@@ -263,7 +263,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
               <div className="modal-content">
                 <div className="modal-header">
                   <h3>Review Event: {selectedEvent.title}</h3>
-                  <button 
+                  <button
                     onClick={() => setSelectedEvent(null)}
                     className="close-btn"
                   >
@@ -514,23 +514,23 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
   return (
     <div className="head-dashboard">
       <div className="dashboard-header">
-        <img src="/assets/Logo-removebg-preview.png" alt="VIT Logo" className="header-logo" />
+        <img src="/VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
         <h1>Head Dashboard</h1>
         <div className="dashboard-nav">
-          <button 
-            className={`nav-btn ${activeSection === 'approvals' ? 'active' : ''}`} 
+          <button
+            className={`nav-btn ${activeSection === 'approvals' ? 'active' : ''}`}
             onClick={() => setActiveSection('approvals')}
           >
             Approvals ({pendingEvents.length})
           </button>
-          <button 
-            className={`nav-btn ${activeSection === 'analytics' ? 'active' : ''}`} 
+          <button
+            className={`nav-btn ${activeSection === 'analytics' ? 'active' : ''}`}
             onClick={() => setActiveSection('analytics')}
           >
             Analytics
           </button>
-          <button 
-            className={`nav-btn ${activeSection === 'management' ? 'active' : ''}`} 
+          <button
+            className={`nav-btn ${activeSection === 'management' ? 'active' : ''}`}
             onClick={() => setActiveSection('management')}
           >
             System Management
