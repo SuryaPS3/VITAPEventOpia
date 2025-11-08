@@ -9,6 +9,7 @@ import { createEventRegistrationsTable, dropEventRegistrationsTable } from './da
 import { createCircularsTable, dropCircularsTable } from './database/schemas/circulars.js';
 import { createEventApprovalsTable, dropEventApprovalsTable } from './database/schemas/eventApprovals.js';
 import { createUserSessionsTable, dropUserSessionsTable } from './database/schemas/userSessions.js';
+import { createPromotionRequestsTable, dropPromotionRequestsTable } from './database/schemas/promotionRequests.js';
 
 // Seed import (supports default or named)
 import * as seeds from './database/seeds/initialData.js';
@@ -32,6 +33,7 @@ async function setupDatabase() {
     await dropClubMembersTable(pool);
     await dropClubsTable(pool);
     await dropUsersTable(pool);
+    await dropPromotionRequestsTable(pool);
     console.log('✅ All existing tables dropped\n');
 
     console.log('📋 Creating tables...\n');
@@ -43,6 +45,7 @@ async function setupDatabase() {
     await createCircularsTable(pool);
     await createEventApprovalsTable(pool);
     await createUserSessionsTable(pool);
+    await createPromotionRequestsTable(pool);
 
     console.log('\n📊 Creating indexes...');
     await pool.request().query(`

@@ -11,12 +11,11 @@ router.put('/request-promotion', authenticateToken, async (req, res) => {
     const pool = req.app.get('dbPool');
 
     await pool.request()
-      .input('id', sql.Int, req.user.id)
+      .input('user_id', sql.Int, req.user.id)
       .input('requested_role', sql.NVarChar, requested_role)
       .query(`
-        UPDATE Users
-        SET promotion_request = @requested_role
-        WHERE id = @id
+        INSERT INTO PromotionRequests (user_id, requested_role)
+        VALUES (@user_id, @requested_role)
       `);
 
     res.json({
@@ -37,9 +36,10 @@ router.get('/promotion-requests', authenticateToken, authorize('department_head'
   try {
     const pool = req.app.get('dbPool');
     const result = await pool.request().query(`
-      SELECT id, first_name, last_name, email, promotion_request
-      FROM Users
-      WHERE promotion_request IS NOT NULL
+      SELECT pr.id, u.first_name, u.last_name, u.email, pr.requested_role
+      FROM PromotionRequests pr
+      JOIN Users u ON pr.user_id = u.id
+      WHERE pr.status = 'pending'
     `);
     res.json({
       success: true,
@@ -60,25 +60,33 @@ router.put('/:id/approve-promotion', authenticateToken, authorize('department_he
     const { id } = req.params;
     const pool = req.app.get('dbPool');
 
-    const userResult = await pool.request()
+    const promotionRequestResult = await pool.request()
       .input('id', sql.Int, id)
-      .query('SELECT promotion_request FROM Users WHERE id = @id');
+      .query('SELECT user_id, requested_role FROM PromotionRequests WHERE id = @id');
 
-    if (userResult.recordset.length === 0) {
+    if (promotionRequestResult.recordset.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'Promotion request not found'
       });
     }
 
-    const promotion_request = userResult.recordset[0].promotion_request;
+    const { user_id, requested_role } = promotionRequestResult.recordset[0];
+
+    await pool.request()
+      .input('user_id', sql.Int, user_id)
+      .input('role', sql.NVarChar, requested_role)
+      .query(`
+        UPDATE Users
+        SET role = @role
+        WHERE id = @user_id
+      `);
 
     await pool.request()
       .input('id', sql.Int, id)
-      .input('role', sql.NVarChar, promotion_request)
       .query(`
-        UPDATE Users
-        SET role = @role, promotion_request = NULL
+        UPDATE PromotionRequests
+        SET status = 'approved'
         WHERE id = @id
       `);
 
@@ -104,8 +112,8 @@ router.put('/:id/reject-promotion', authenticateToken, authorize('department_hea
     await pool.request()
       .input('id', sql.Int, id)
       .query(`
-        UPDATE Users
-        SET promotion_request = NULL
+        UPDATE PromotionRequests
+        SET status = 'rejected'
         WHERE id = @id
       `);
 
