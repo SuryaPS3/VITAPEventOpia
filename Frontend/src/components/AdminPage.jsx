@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client.js';
 import './AdminPage.css';
+import Footer from './Footer.jsx';
 
 const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
   // Debug: Check if onPostEvent function is passed
@@ -314,6 +315,7 @@ const AdminPage = ({ user, onLogout, events, onPostEvent, loading }) => {
         {activeSection === 'create' && renderCreateSection()}
         {activeSection === 'requests' && renderRequestsSection()}
       </div>
+      <Footer />
     </div>
   );
 };

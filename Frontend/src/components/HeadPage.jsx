@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client.js';
 import './HeadPage.css';
+import Footer from './Footer.jsx';
 
 const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
   // Tab management
@@ -543,6 +544,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
         {activeSection === 'analytics' && renderAnalyticsSection()}
         {activeSection === 'management' && renderManagementSection()}
       </div>
+      <Footer />
     </div>
   );
 };
