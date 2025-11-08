@@ -90,7 +90,7 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
       </div>
       <div className="container">
         <header className="header">
-          <img src="../public/Logo-removebg-preview (1).svg" alt="VIT Logo" className="header-logo" />
+          <img src="../public/VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
           <div className="login-button-container">
             {user ? (
               <button className="login-btn" onClick={onLogout}><span>👋 {user.name}</span></button>
