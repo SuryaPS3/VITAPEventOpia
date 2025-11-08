@@ -80,7 +80,8 @@ router.post('/login', async (req, res) => {
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, first_name, last_name, requested_role } = req.body;
+    console.log('Register request received:', req.body);
+    const { email, password, first_name, last_name } = req.body;
     
     if (!email || !password || !first_name || !last_name) {
       return res.status(400).json({ 
@@ -92,25 +93,25 @@ router.post('/register', async (req, res) => {
     const pool = req.app.get('dbPool');
     const password_hash = await bcrypt.hash(password, 12);
 
+    console.log('Inserting user into database...');
     const result = await pool.request()
       .input('email', sql.NVarChar, email)
       .input('password_hash', sql.NVarChar, password_hash)
       .input('first_name', sql.NVarChar, first_name)
       .input('last_name', sql.NVarChar, last_name)
       .input('role', sql.NVarChar, 'visitor')
-      .input('requested_role', sql.NVarChar, requested_role || 'visitor')
-      .input('status', sql.NVarChar, 'pending')
       .query(`
-        INSERT INTO Users (email, password_hash, first_name, last_name, role, requested_role, status, is_active)
+        INSERT INTO Users (email, password_hash, first_name, last_name, role, is_active)
         OUTPUT INSERTED.*
-        VALUES (@email, @password_hash, @first_name, @last_name, @role, @requested_role, @status, 1)
+        VALUES (@email, @password_hash, @first_name, @last_name, @role, 1)
       `);
 
     const newUser = result.recordset[0];
+    console.log('User inserted successfully:', newUser);
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Your account is pending approval from the administrator.',
+      message: 'User registered successfully.',
       user: {
         id: newUser.id,
         email: newUser.email,

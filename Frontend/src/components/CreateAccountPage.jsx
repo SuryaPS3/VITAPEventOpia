@@ -7,8 +7,7 @@ const CreateAccountPage = () => {
     first_name: '',
     last_name: '',
     email: '',
-    password: '',
-    requested_role: 'visitor'
+    password: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -23,6 +22,7 @@ const CreateAccountPage = () => {
     setSuccess('');
 
     try {
+      console.log('Submitting registration data:', formData);
       const response = await authAPI.register(formData);
       if (response.success) {
         setSuccess(response.message);
@@ -30,6 +30,7 @@ const CreateAccountPage = () => {
         setError(response.message);
       }
     } catch (err) {
+      console.error('Registration submission error:', err);
       setError(err.message);
     }
   };
@@ -55,14 +56,7 @@ const CreateAccountPage = () => {
             <label htmlFor="password">Password</label>
             <input type="password" name="password" id="password" value={formData.password} onChange={handleChange} required />
           </div>
-          <div className="form-group">
-            <label htmlFor="requested_role">Role</label>
-            <select name="requested_role" id="requested_role" value={formData.requested_role} onChange={handleChange}>
-              <option value="visitor">Visitor</option>
-              <option value="club_faculty">Faculty</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
+
           {error && <p className="error-message">{error}</p>}
           {success && <p className="success-message">{success}</p>}
           <button type="submit">Create Account</button>

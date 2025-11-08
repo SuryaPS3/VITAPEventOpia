@@ -447,7 +447,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
 
   const fetchPendingUsers = async () => {
     try {
-      const response = await apiClient.get('/users/pending');
+      const response = await apiClient.get('/users/promotion-requests');
       if (response.success) {
         setPendingUsers(response.users);
       }
@@ -458,7 +458,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
 
   const handleApproveUser = async (userId) => {
     try {
-      const response = await apiClient.put(`/users/${userId}/approve`);
+      const response = await apiClient.put(`/users/${userId}/approve-promotion`);
       if (response.success) {
         alert('User promotion approved successfully!');
         setPendingUsers(prev => prev.filter(user => user.id !== userId));
@@ -471,7 +471,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
 
   const handleRejectUser = async (userId) => {
     try {
-      const response = await apiClient.put(`/users/${userId}/reject`);
+      const response = await apiClient.put(`/users/${userId}/reject-promotion`);
       if (response.success) {
         alert('User promotion rejected successfully!');
         setPendingUsers(prev => prev.filter(user => user.id !== userId));
@@ -497,7 +497,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
               <div className="user-details">
                 <div className="user-name">{user.first_name} {user.last_name}</div>
                 <div className="user-email">{user.email}</div>
-                <div className="user-role">Requested Role: {user.requested_role}</div>
+                <div className="user-role">Requested Role: {user.promotion_request}</div>
               </div>
               <div className="user-actions">
                 <button className="approve-btn" onClick={() => handleApproveUser(user.id)}>Approve</button>
