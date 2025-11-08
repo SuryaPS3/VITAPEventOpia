@@ -131,6 +131,33 @@ const App = () => {
 
   // Load events and clubs when component mounts
   useEffect(() => {
+    const checkLoggedIn = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          const response = await authAPI.getProfile();
+          if (response.success) {
+            const roleMapping = {
+              'admin': 'admin',
+              'club_faculty': 'faculty',
+              'department_head': 'head',
+              'club_member': 'visitor'
+            };
+            const mappedRole = roleMapping[response.user.role] || 'visitor';
+            const user = {
+              ...response.user,
+              name: `${response.user.first_name} ${response.user.last_name}`,
+              roles: [mappedRole]
+            };
+            setUser(user);
+            setCurrentPage(mappedRole);
+          }
+        } catch (error) {
+          console.error('Failed to fetch profile:', error);
+        }
+      }
+    };
+    checkLoggedIn();
     fetchApprovedEvents();
     fetchClubs();
   }, []);

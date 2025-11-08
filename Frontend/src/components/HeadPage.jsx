@@ -497,7 +497,7 @@ const HeadPage = ({ user, onLogout, onEventStatusChanged }) => {
               <div className="user-details">
                 <div className="user-name">{user.first_name} {user.last_name}</div>
                 <div className="user-email">{user.email}</div>
-                <div className="user-role">Requested Role: {user.status.split('_')[1]}</div>
+                <div className="user-role">Requested Role: {user.status ? user.status.split('_')[1] : ''}</div>
               </div>
               <div className="user-actions">
                 <button className="approve-btn" onClick={() => handleApproveUser(user.id)}>Approve</button>
