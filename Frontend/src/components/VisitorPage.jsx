@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { apiClient } from '../api/client.js';
 import './VisitorPage.css';
 import Footer from './Footer.jsx';
 
@@ -6,6 +7,22 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showPromotionModal, setShowPromotionModal] = useState(false);
+  const [requestedRole, setRequestedRole] = useState('club_faculty');
+
+  const handleRequestPromotion = async () => {
+    try {
+      const response = await apiClient.put('/users/request-promotion', { requested_role: requestedRole });
+      if (response.success) {
+        alert('Promotion request submitted successfully!');
+        setShowPromotionModal(false);
+      }
+    } catch (error) {
+      alert('Failed to submit promotion request: ' + (error.message || 'Unknown error'));
+      console.error('Error requesting promotion:', error);
+    }
+  };
+
 
   const clubs = [
     { id: 1, name: 'Dance Collective', icon: '💃', description: 'Express your soul through movement. From contemporary to hip-hop, classical to street dance.', categoryKey: 'dance' },
@@ -93,7 +110,10 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
           <img src="../public/VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
           <div className="login-button-container">
             {user ? (
-              <button className="login-btn" onClick={onLogout}><span>👋 {user.name}</span></button>
+              <>
+                <button className="login-btn" onClick={() => setShowPromotionModal(true)}><span>Request Promotion</span></button>
+                <button className="login-btn" onClick={onLogout}><span>👋 {user.name}</span></button>
+              </>
             ) : (
               <button className="login-btn" onClick={onShowLoginModal}><span>🔐 Login</span></button>
             )}
@@ -101,6 +121,22 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
           <h1 className="logo">Eventopia</h1>
           <p className="tagline">Where Every Event Becomes an Experience</p>
         </header>
+        {showPromotionModal && (
+          <div className="modal">
+            <div className="modal-content">
+              <span className="close" onClick={() => setShowPromotionModal(false)}>&times;</span>
+              <h2>Request Promotion</h2>
+              <div className="form-group">
+                <label htmlFor="requested_role">Role</label>
+                <select name="requested_role" id="requested_role" value={requestedRole} onChange={(e) => setRequestedRole(e.target.value)}>
+                  <option value="club_faculty">Faculty</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <button className="register-btn" onClick={handleRequestPromotion}>Submit Request</button>
+            </div>
+          </div>
+        )}
         <section className="search-section">
           <div className="search-container">
             <input type="text" className="search-input" placeholder="Search events, clubs, or activities..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
