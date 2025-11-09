@@ -74,7 +74,11 @@
   animation: slideIn 0.3s ease;
   border: 1px solid rgba(157, 80, 187, 0.3);
   color: #e0e6ed;
+  overflow-y: auto;
+  max-height: 95vh;
+  scrollbar-width: none;
 }
+
 
 @keyframes slideIn {
   from {
@@ -110,16 +114,19 @@
   background: rgba(157, 80, 187, 0.2);
 }
 
-.vit-logo {
-  text-align: center;
-  margin: 0 auto 20px auto;
-  /* Center the logo and add some bottom margin */
-  width: 80%;
-  /* Adjust width to be responsive */
-  max-width: 300px;
-  /* Set a maximum width */
-  height: auto;
-  /* Allow height to adjust proportionally */
+.login-logo {
+  display: block;
+  margin: 0 auto 25px auto;
+  width: 60%;
+  /* controls overall size */
+  max-width: 320px;
+  /* limits on larger screens */
+  height: 400px;
+  /* let it scale naturally */
+  object-fit: contain;
+  width: 320px;
+  margin-bottom: 0px;
+
 }
 
 .logo-circle {
@@ -136,17 +143,69 @@
 
 .logo-text {
   color: white;
-  font-size: 24px;
+  font-size: 54px;
   font-weight: bold;
 }
 
-.modal h2 {
-  margin-bottom: 30px;
-  color: #f8fafc;
+.modal-content h2 {
+  position: relative;
   text-align: center;
-  font-size: 2rem;
-  font-weight: 700;
+
+  /* ✅ Font control — these WILL apply now */
+  font-size: 3rem !important;
+  font-weight: 800 !important;
+
+  letter-spacing: 1px;
+  text-transform: none;
+  margin-bottom: 50px;
+
+  /* Gradient glass effect */
+  background: linear-gradient(90deg, #b794f6, #9b5de5, #6f42c1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  /* Soft glowing text */
+  text-shadow:
+    0 0 15px rgba(155, 93, 229, 0.25),
+    0 0 30px rgba(147, 112, 219, 0.15);
+
+  /* Add depth */
+  filter: drop-shadow(0 4px 12px rgba(147, 112, 219, 0.15));
+
+  /* Animations */
+  animation: fadeSlideIn 0.8s ease forwards, shimmerMove 4s linear infinite;
+  padding-bottom: 10px;
 }
+
+
+/* Smooth slide + fade in */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subtle gradient shimmer */
+@keyframes shimmerMove {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 
 .form-group {
   margin-bottom: 20px;
@@ -225,4 +284,15 @@
 .login-submit-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(157, 80, 187, 0.5);
+}
+
+/* Prevent unnecessary scroll inside modal */
+.modal {
+  overflow: hidden;
+  /* hides any scroll caused by shadows or elements */
+}
+
+/* Hide scrollbar visually (Chrome, Edge, Safari) */
+.modal-content::-webkit-scrollbar {
+  display: none;
 }

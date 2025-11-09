@@ -52,7 +52,7 @@ const Login = ({ onLogin, onShowRoleSelection, onClose, children }) => {
         <span className="close" onClick={onClose}>&times;</span>
         <div style={{ textAlign: 'center' }}>
 
-          <img src="../public/VIT_AP_Logo.svg" alt="VIT Logo" className="login-logo" />
+          <img src="/VIT_AP_logo.svg" alt="VIT Logo" className="login-logo" />
           {/* alt="VIT Logo"
           className="login-logo" */}
 
