@@ -1,7 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import sql from 'mssql';
 
 const router = express.Router();
 
@@ -24,20 +23,18 @@ router.post('/login', async (req, res) => {
     }
 
     const pool = req.app.get('dbPool');
-    const result = await pool.request()
-      .input('email', sql.NVarChar, email)
-      .query('SELECT * FROM Users WHERE email = @email');
+    const result = await pool.query('SELECT * FROM Users WHERE email = $1', [email]);
 
-    console.log('Database query result:', result.recordset.length > 0 ? 'User found' : 'User not found');
+    console.log('Database query result:', result.rows.length > 0 ? 'User found' : 'User not found');
 
-    if (result.recordset.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(401).json({ 
         success: false,
         message: 'Invalid credentials' 
       });
     }
 
-    const user = result.recordset[0];
+    const user = result.rows[0];
     console.log('User retrieved, checking password...');
     const validPassword = await bcrypt.compare(password, user.password_hash);
     console.log('Password validation result:', validPassword);
@@ -92,19 +89,14 @@ router.post('/register', async (req, res) => {
     const pool = req.app.get('dbPool');
     const password_hash = await bcrypt.hash(password, 12);
 
-    const result = await pool.request()
-      .input('email', sql.NVarChar, email)
-      .input('password_hash', sql.NVarChar, password_hash)
-      .input('first_name', sql.NVarChar, first_name)
-      .input('last_name', sql.NVarChar, last_name)
-      .input('role', sql.NVarChar, role || 'club_member')
-      .query(`
-        INSERT INTO Users (email, password_hash, first_name, last_name, role, is_active)
-        OUTPUT INSERTED.*
-        VALUES (@email, @password_hash, @first_name, @last_name, @role, 1)
-      `);
+    const result = await pool.query(
+      `INSERT INTO Users (email, password_hash, first_name, last_name, role, is_active)
+       VALUES ($1, $2, $3, $4, $5, true)
+       RETURNING *`,
+      [email, password_hash, first_name, last_name, role || 'club_member']
+    );
 
-    const newUser = result.recordset[0];
+    const newUser = result.rows[0];
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email, role: newUser.role },
       process.env.JWT_SECRET,
@@ -143,15 +135,13 @@ router.get('/profile', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const pool = req.app.get('dbPool');
 
-    const result = await pool.request()
-      .input('id', sql.Int, decoded.id)
-      .query('SELECT id, email, first_name, last_name, role FROM Users WHERE id = @id');
+    const result = await pool.query('SELECT id, email, first_name, last_name, role FROM Users WHERE id = $1', [decoded.id]);
 
-    if (result.recordset.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.json({ success: true, user: result.recordset[0] });
+    res.json({ success: true, user: result.rows[0] });
   } catch (error) {
     res.status(401).json({ success: false, message: 'Invalid token' });
   }

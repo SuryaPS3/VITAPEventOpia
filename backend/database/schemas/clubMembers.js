@@ -1,13 +1,13 @@
 export const createClubMembersTable = async (pool) => {
   console.log('Creating ClubMembers table...');
-  await pool.request().query(`
+  await pool.query(`
     CREATE TABLE ClubMembers (
-      id INT IDENTITY(1,1) PRIMARY KEY,
+      id SERIAL PRIMARY KEY,
       club_id INT NOT NULL,
       user_id INT NOT NULL,
-      position NVARCHAR(100),
-      joined_date DATETIME2 DEFAULT GETDATE(),
-      is_active BIT DEFAULT 1,
+      position VARCHAR(100),
+      joined_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      is_active BOOLEAN DEFAULT true,
       added_by INT,
       FOREIGN KEY (club_id) REFERENCES Clubs(id),
       FOREIGN KEY (user_id) REFERENCES Users(id),
@@ -19,5 +19,5 @@ export const createClubMembersTable = async (pool) => {
 };
 
 export const dropClubMembersTable = async (pool) => {
-  await pool.request().query('DROP TABLE IF EXISTS ClubMembers');
+  await pool.query('DROP TABLE IF EXISTS ClubMembers CASCADE');
 };
