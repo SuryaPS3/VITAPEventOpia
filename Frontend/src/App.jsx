@@ -6,90 +6,18 @@ import RoleSelection from './components/AccessRoleDashboard.jsx';
 import VisitorPage from './components/VisitorPage.jsx';
 import AdminPage from './components/AdminPage.jsx';
 import FacultyPage from './components/FacultyPage.jsx';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import CreateAccountPage from './components/CreateAccountPage.jsx';
 import HeadPage from './components/HeadPage.jsx';
 
-// ✅ Dummy data for events and clubs (you can replace these with backend data later)
-const dummyEvents = [
-  {
-    id: 1,
-    title: 'Cultural Fest',
-    category: 'Cultural',
-    date: '2025-11-10',
-    time: '10:00 AM',
-    venue: 'Auditorium',
-    fee: 'Free',
-    clubName: 'Cultural Heritage Club',
-    organizer: 'Dr. Meena',
-    attendees: 120,
-    status: 'approved'
-  },
-  {
-    id: 2,
-    title: 'Tech Symposium',
-    category: 'Technical',
-    date: '2025-11-12',
-    time: '02:00 PM',
-    venue: 'Seminar Hall 2',
-    fee: '₹50',
-    clubName: 'Innovation Club',
-    organizer: 'Prof. Raj',
-    attendees: 85,
-    status: 'pending_review'
-  },
-  {
-    id: 3,
-    title: 'Sports Meet',
-    category: 'Sports',
-    date: '2025-11-20',
-    time: '09:00 AM',
-    venue: 'Ground',
-    fee: 'Free',
-    clubName: 'Fitness Club',
-    organizer: 'Mr. Ravi',
-    attendees: 150,
-    status: 'approved'
-  }
-];
-
-const dummyClubs = [
-  {
-    id: 1,
-    name: 'Cultural Heritage Club',
-    category: 'Cultural',
-    members: 75,
-    activeEvents: 3,
-    established: '2018',
-    coordinator: 'Dr. Meena',
-    status: 'active'
-  },
-  {
-    id: 2,
-    name: 'Innovation Club',
-    category: 'Technical',
-    members: 120,
-    activeEvents: 2,
-    established: '2019',
-    coordinator: 'Prof. Raj',
-    status: 'active'
-  },
-  {
-    id: 3,
-    name: 'Fitness Club',
-    category: 'Sports',
-    members: 90,
-    activeEvents: 1,
-    established: '2020',
-    coordinator: 'Mr. Ravi',
-    status: 'inactive'
-  }
-];
 
 const App = () => {
   const [user, setUser] = useState(null); // Stores logged-in user details
   const [showRoleSelection, setShowRoleSelection] = useState(false);
-  const [currentPage, setCurrentPage] = useState(null); // Which dashboard is shown
-  const [showLogin, setShowLogin] = useState(true); // Controls login modal visibility
+  const [currentPage, setCurrentPage] = useState('visitor'); // Which dashboard is shown
+  const [showLogin, setShowLogin] = useState(false); // Controls login modal visibility
   const [events, setEvents] = useState([]); // Real events from backend
+  const [clubs, setClubs] = useState([]); // Real clubs from backend
   const [loading, setLoading] = useState(false);
 
   // Fetch approved events for student dashboard
@@ -120,10 +48,19 @@ const App = () => {
       }
     } catch (error) {
       console.error('Failed to fetch events:', error);
-      // Fallback to dummy data if backend fails
-      setEvents(dummyEvents);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchClubs = async () => {
+    try {
+      const response = await apiClient.get('/clubs');
+      if (response.success) {
+        setClubs(response.clubs);
+      }
+    } catch (error) {
+      console.error('Failed to fetch clubs:', error);
     }
   };
 
@@ -192,9 +129,37 @@ const App = () => {
     }
   };
 
-  // Load events when component mounts
+  // Load events and clubs when component mounts
   useEffect(() => {
+    const checkLoggedIn = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          const response = await authAPI.getProfile();
+          if (response.success) {
+            const roleMapping = {
+              'admin': 'admin',
+              'club_faculty': 'faculty',
+              'department_head': 'head',
+              'club_member': 'visitor'
+            };
+            const mappedRole = roleMapping[response.user.role] || 'visitor';
+            const user = {
+              ...response.user,
+              name: `${response.user.first_name} ${response.user.last_name}`,
+              roles: [mappedRole]
+            };
+            setUser(user);
+            setCurrentPage(mappedRole);
+          }
+        } catch (error) {
+          console.error('Failed to fetch profile:', error);
+        }
+      }
+    };
+    checkLoggedIn();
     fetchApprovedEvents();
+    fetchClubs();
   }, []);
 
   // ✅ Backend-connected login logic with fallback to mock
@@ -271,8 +236,8 @@ const App = () => {
     authAPI.logout(); // Clear localStorage
     setUser(null);
     setShowRoleSelection(false);
-    setCurrentPage(null);
-    setShowLogin(true);
+    setCurrentPage('visitor');
+    setShowLogin(false);
   };
 
   // Handle showing login modal for visitor page
@@ -295,13 +260,13 @@ const App = () => {
           onShowLoginModal={handleShowLoginModal}
           onShowRegistrationModal={handleShowRegistrationModal}
           events={events} 
-          clubs={dummyClubs} 
+          clubs={clubs} 
           loading={loading} 
         />;
       case 'admin':
         return <AdminPage user={user} onLogout={handleLogout} events={events} onPostEvent={createEvent} loading={loading} />;
       case 'faculty':
-        return <FacultyPage user={user} onLogout={handleLogout} events={dummyEvents} clubs={dummyClubs} />;
+        return <FacultyPage user={user} onLogout={handleLogout} events={events} clubs={clubs} />;
       case 'head':
         return <HeadPage user={user} onLogout={handleLogout} onEventStatusChanged={fetchApprovedEvents} />;
       default:
@@ -310,29 +275,36 @@ const App = () => {
   };
 
   return (
-    <div className="App">
-      {/* Show login modal if not logged in */}
-      {showLogin && (
-        <Login
-          onLogin={handleLogin}
-          onShowRoleSelection={(userData) => {
-            setUser(userData);
-            setShowRoleSelection(true);
-            setShowLogin(false);
-          }}
-          onClose={() => setShowLogin(false)}
-        />
-      )}
-
-      {/* Role selection screen */}
-      {showRoleSelection && user && (
-        <RoleSelection user={user} onSelectRole={handleSelectRole} onLogout={handleLogout} />
-      )}
-
-      {/* Dashboard based on selected role */}
-      {user && currentPage && renderDashboard()}
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={
+            <>
+              {showLogin && (
+                <Login
+                  onLogin={handleLogin}
+                  onShowRoleSelection={(userData) => {
+                    setUser(userData);
+                    setShowRoleSelection(true);
+                    setShowLogin(false);
+                  }}
+                  onClose={() => setShowLogin(false)}
+                >
+                  <p>
+                    Don't have an account? <Link to="/create-account">Create one</Link>
+                  </p>
+                </Login>
+              )}
+              {showRoleSelection && user && (
+                <RoleSelection user={user} onSelectRole={handleSelectRole} onLogout={handleLogout} />
+              )}
+              {renderDashboard()}
+            </>
+          } />
+          <Route path="/create-account" element={<CreateAccountPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
-
 export default App;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './LoginModal.css';
 
-const Login = ({ onLogin, onShowRoleSelection, onClose }) => {
+const Login = ({ onLogin, onShowRoleSelection, onClose, children }) => {
   const [credentials, setCredentials] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false); // ⭐ NEW: Loading state
@@ -92,6 +92,17 @@ const Login = ({ onLogin, onShowRoleSelection, onClose }) => {
             <span>{loading ? 'Logging in...' : 'Login'}</span>
           </button>
         </form>
+
+        <div style={{
+          marginTop: '20px',
+          padding: '10px',
+          background: 'rgba(0, 212, 255, 0.1)',
+          borderRadius: '10px',
+          fontSize: '0.85rem',
+          color: '#94a3b8'
+        }}>
+          {children}
+        </div>
 
         {/* ⭐ NEW: Helpful hint for testing */}
         <div style={{
