@@ -18,10 +18,10 @@ const seedInitialData = seeds.seedInitialData || seeds.default || (async () => {
 });
 
 async function setupDatabase() {
-  let pool;
+  const pool = getPool();
   try {
     console.log('🔄 Connecting to database...');
-    pool = await getPool();
+    // with pg, the pool is connected on first query
     console.log('✅ Connected successfully\n');
 
     console.log('🗑️  Dropping existing tables...\n');
@@ -48,26 +48,11 @@ async function setupDatabase() {
     await createPromotionRequestsTable(pool);
 
     console.log('\n📊 Creating indexes...');
-    await pool.request().query(`
-      IF NOT EXISTS (
-        SELECT 1 FROM sys.indexes 
-        WHERE name = 'IX_Users_Email' AND object_id = OBJECT_ID('dbo.Users')
-      ) CREATE INDEX IX_Users_Email ON dbo.Users(email);
-
-      IF NOT EXISTS (
-        SELECT 1 FROM sys.indexes 
-        WHERE name = 'IX_Users_Role' AND object_id = OBJECT_ID('dbo.Users')
-      ) CREATE INDEX IX_Users_Role ON dbo.Users(role);
-
-      IF NOT EXISTS (
-        SELECT 1 FROM sys.indexes 
-        WHERE name = 'IX_Events_Status' AND object_id = OBJECT_ID('dbo.Events')
-      ) CREATE INDEX IX_Events_Status ON dbo.Events(status);
-
-      IF NOT EXISTS (
-        SELECT 1 FROM sys.indexes 
-        WHERE name = 'IX_EventRegistrations_Event' AND object_id = OBJECT_ID('dbo.EventRegistrations')
-      ) CREATE INDEX IX_EventRegistrations_Event ON dbo.EventRegistrations(event_id);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS IX_Users_Email ON Users(email);
+      CREATE INDEX IF NOT EXISTS IX_Users_Role ON Users(role);
+      CREATE INDEX IF NOT EXISTS IX_Events_Status ON Events(status);
+      CREATE INDEX IF NOT EXISTS IX_EventRegistrations_Event ON EventRegistrations(event_id);
     `);
     console.log('✅ Indexes created');
 

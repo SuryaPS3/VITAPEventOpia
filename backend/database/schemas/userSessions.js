@@ -1,12 +1,12 @@
 export const createUserSessionsTable = async (pool) => {
   console.log('Creating UserSessions table...');
-  await pool.request().query(`
+  await pool.query(`
     CREATE TABLE UserSessions (
-      id INT IDENTITY(1,1) PRIMARY KEY,
+      id SERIAL PRIMARY KEY,
       user_id INT NOT NULL,
-      session_token NVARCHAR(500) NOT NULL UNIQUE,
-      expires_at DATETIME2 NOT NULL,
-      created_at DATETIME2 DEFAULT GETDATE(),
+      session_token VARCHAR(500) NOT NULL UNIQUE,
+      expires_at TIMESTAMP NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES Users(id)
     )
   `);
@@ -14,5 +14,5 @@ export const createUserSessionsTable = async (pool) => {
 };
 
 export const dropUserSessionsTable = async (pool) => {
-  await pool.request().query('DROP TABLE IF EXISTS UserSessions');
+  await pool.query('DROP TABLE IF EXISTS UserSessions CASCADE');
 };

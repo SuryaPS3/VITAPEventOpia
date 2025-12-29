@@ -1,10 +1,23 @@
-# 🎭 College Event Management System
+# 🎪 EventOpia - VIT-AP University Event Management System
 
-A modern, responsive web application for managing college events with role-based authentication and beautiful UI built with React and Tailwind CSS.
+[![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Azure SQL](https://img.shields.io/badge/Azure_SQL-0078D4?style=for-the-badge&logo=microsoft-azure&logoColor=white)](https://azure.microsoft.com/en-us/products/azure-sql/)
+[![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white)](https://jwt.io/)
 
-![React](https://img.shields.io/badge/React-18.0+-blue.svg)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0+-38B2AC.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+## 🚀 Project Overview
+
+EventOpia is a comprehensive event management system built for VIT-AP University that streamlines the entire event lifecycle - from creation to approval to student registration. The platform implements a sophisticated multi-role workflow system that ensures proper governance while maintaining user-friendly interfaces.
+
+### 🎯 The Challenge Solved
+
+**The most challenging aspect of this project was implementing a real-time, multi-role event approval workflow system.** The complexity involved:
+
+- **Multi-Role Authentication**: Designing secure JWT-based authentication supporting Admin, Department Head, Faculty, and Student roles
+- **Real-Time State Management**: Ensuring event status changes immediately reflect across all user dashboards
+- **Complex Database Relationships**: Managing interconnected data between Users, Events, Clubs, and Approvals tables
+- **Async Operation Handling**: Implementing robust error handling for database operations and API calls
+- **Role-Based UI Rendering**: Creating dynamic interfaces that adapt based on user permissions
 
 ## 📋 Table of Contents
 
@@ -20,47 +33,37 @@ A modern, responsive web application for managing college events with role-based
 - [License](#license)
 - [Contact](#contact)
 
-## ✨ Features
+## 🔥 Key Features
 
-### 🔐 Authentication System
-- **Three-tier login system**:
-  - 👥 Visitor Access
-  - 🎯 Club Task Force Access
-  - 👑 Administrator Access
-- Role-based access control
-- Secure logout functionality
-- Form validation
+### 👑 **Admin Dashboard**
+- Create events with detailed information including Google Forms integration
+- Track event submission status in real-time
+- View personal event history and analytics
+- Full event lifecycle management
 
-### 🎪 Event Management
-- Browse events by category (Dance, Music, Drama, Literary, etc.)
-- Detailed event information (date, time, location, pricing)
-- Event registration with multiple participation types:
-  - Event Management
-  - Volunteer
-  - Performer
-  - Audience Member
+### 🎯 **Department Head Dashboard**
+- Review pending event requests with detailed information
+- Approve/reject events with feedback comments
+- Analytics dashboard showing approval trends
+- System management and oversight tools
 
-### 🏛️ Club Management
-- 6 Different club categories:
-  - 💃 Dance Club
-  - 🎸 Western Music Club
-  - 🎻 Classical Music Club
-  - 🇮🇳 Hindi Association Club
-  - 🎭 Drama Club
-  - 📚 Literary Society
+### 👥 **Student Interface (Visitor Page)**
+- Browse approved events by category (Dance, Music, Classical, Cultural, Theatre, Literary)
+- Register for events via integrated Google Forms
+- Filter events by clubs and interests
+- Responsive design for mobile and desktop access
 
-### 🎨 User Interface
-- Modern glassmorphism design
-- Smooth animations and transitions
-- Responsive layout (mobile, tablet, desktop)
-- Interactive hover effects
-- Beautiful gradient backgrounds
-- Modal dialogs for registration
+### 🛡️ **Security & Authentication**
+- JWT-based authentication with role-based access control
+- Secure password hashing with bcrypt
+- SQL injection protection with parameterized queries
+- Environment variable configuration for sensitive data
 
-### 🛠️ Role-Specific Features
-- **Administrators**: Full system control panel
-- **Club Task Force**: Club-specific event management
-- **Visitors**: Event browsing and registration
+### 💻 **Technical Features**
+- Real-time event status synchronization across all user interfaces
+- Azure SQL Database integration with robust schema design
+- RESTful API design with comprehensive error handling
+- Modern React frontend with efficient state management
 
 ## 🚀 Demo
 
@@ -348,11 +351,107 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - All contributors and supporters of this project
 - College event management teams for inspiration
 
+## 💻 Technical Implementation Details
+
+### Event Approval Workflow System
+```javascript
+// Backend API - Event Approval Endpoint
+app.post('/api/events/:id/approve', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { comments } = req.body;
+  
+  try {
+    // Update event status to approved
+    await pool.request()
+      .input('eventId', sql.Int, id)
+      .input('status', sql.VarChar, 'approved')
+      .query('UPDATE Events SET status = @status WHERE id = @eventId');
+    
+    // Log the approval action for audit trail
+    await pool.request()
+      .input('eventId', sql.Int, id)
+      .input('approvedBy', sql.VarChar, req.user.name)
+      .input('comments', sql.Text, comments)
+      .query('INSERT INTO EventApprovals VALUES (@eventId, @approvedBy, @comments)');
+    
+    res.json({ success: true, message: 'Event approved successfully' });
+  } catch (error) {
+    console.error('Approval error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+```
+
+### Database Schema Design
+```sql
+-- Core tables supporting the multi-role workflow system
+CREATE TABLE Users (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    name NVARCHAR(100) NOT NULL,
+    email NVARCHAR(100) UNIQUE NOT NULL,
+    password_hash NVARCHAR(255) NOT NULL,
+    role NVARCHAR(50) DEFAULT 'visitor',
+    created_at DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Events (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    title NVARCHAR(200) NOT NULL,
+    description NTEXT,
+    event_date DATE NOT NULL,
+    event_time NVARCHAR(20),
+    venue NVARCHAR(200),
+    category NVARCHAR(50),
+    status NVARCHAR(20) DEFAULT 'pending',
+    registration_form_url NVARCHAR(1024),
+    created_by_name NVARCHAR(100),
+    created_at DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE EventApprovals (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    event_id INT FOREIGN KEY REFERENCES Events(id),
+    approved_by NVARCHAR(100),
+    status NVARCHAR(20),
+    comments NTEXT,
+    approved_at DATETIME DEFAULT GETDATE()
+);
+```
+
+### Frontend State Management
+```javascript
+// Real-time event status synchronization
+const [events, setEvents] = useState([]);
+const [user, setUser] = useState(null);
+
+const fetchEvents = async () => {
+  try {
+    const response = await apiClient.get('/events?status=approved');
+    if (response.success) {
+      setEvents(response.events.map(event => ({
+        ...event,
+        registration_form_url: event.registration_form_url
+      })));
+    }
+  } catch (error) {
+    console.error('Error fetching events:', error);
+  }
+};
+```
+
+## 🔧 Key Technical Challenges Solved
+
+1. **SQL Parameter Validation**: Resolved SQL Time type validation issues by switching to NVarChar with custom validation
+2. **Async State Management**: Implemented proper async/await patterns for real-time status updates
+3. **Role-Based UI Rendering**: Created dynamic interfaces that adapt to user permissions
+4. **Database Relationship Management**: Designed efficient schema for complex workflow requirements
+5. **Google Forms Integration**: Seamless external registration form integration with proper URL validation
+
 ---
 
 ## Authors
- - Surya Pratap Singh
- - Rohan Shah
+ - Surya Pratap Singh (Lead Developer)
+ - Rohan Shah  
  - Siddhant Rana
 
 <div align="center">

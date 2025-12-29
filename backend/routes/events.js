@@ -1,5 +1,4 @@
 import express from 'express';
-import sql from 'mssql';
 import { authenticateToken, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -16,14 +15,14 @@ router.get('/schema', async (req, res) => {
   try {
     const pool = req.app.get('dbPool');
     
-    const result = await pool.request().query(`
-      SELECT TOP 5 * FROM Events
+    const result = await pool.query(`
+      SELECT * FROM Events LIMIT 5
     `);
     
     res.json({
       success: true,
-      count: result.recordset.length,
-      events: result.recordset
+      count: result.rows.length,
+      events: result.rows
     });
   } catch (error) {
     res.status(500).json({ 
@@ -55,41 +54,43 @@ router.get('/', async (req, res) => {
         e.status,
         e.created_at,
         c.name as club_name,
-        u.first_name + ' ' + u.last_name as created_by_name
+        u.first_name || ' ' || u.last_name as created_by_name
       FROM Events e
       LEFT JOIN Clubs c ON e.club_id = c.id
       LEFT JOIN Users u ON e.created_by = u.id
       WHERE 1=1
     `;
 
-    const request = pool.request();
+    const queryParams = [];
+    let paramIndex = 1;
 
     // Filter by status
     if (status) {
-      query += ' AND e.status = @status';
-      request.input('status', sql.NVarChar, status);
+      query += ` AND e.status = $${paramIndex++}`;
+      queryParams.push(status);
     }
 
     // Filter by category
     if (category) {
-      query += ' AND e.category = @category';
-      request.input('category', sql.NVarChar, category);
+      query += ` AND e.category = $${paramIndex++}`;
+      queryParams.push(category);
     }
 
     // Search by title or description
     if (search) {
-      query += ' AND (e.title LIKE @search OR e.description LIKE @search)';
-      request.input('search', sql.NVarChar, `%${search}%`);
+      query += ` AND (e.title ILIKE $${paramIndex} OR e.description ILIKE $${paramIndex})`;
+      queryParams.push(`%${search}%`);
+      paramIndex++;
     }
 
     query += ' ORDER BY e.event_date DESC';
 
-    const result = await request.query(query);
+    const result = await pool.query(query, queryParams);
 
     res.json({
       success: true,
-      count: result.recordset.length,
-      events: result.recordset
+      count: result.rows.length,
+      events: result.rows
     });
   } catch (error) {
     console.error('Get events error:', error);
@@ -106,7 +107,7 @@ router.get('/pending', authenticateToken, authorize('department_head'), async (r
   try {
     const pool = req.app.get('dbPool');
 
-    const result = await pool.request().query(`
+    const result = await pool.query(`
       SELECT 
         e.id,
         e.title,
@@ -123,7 +124,7 @@ router.get('/pending', authenticateToken, authorize('department_head'), async (r
         e.created_at,
         c.name as club_name,
         c.club_email,
-        creator.first_name + ' ' + creator.last_name as created_by_name,
+        creator.first_name || ' ' || creator.last_name as created_by_name,
         creator.email as created_by_email
       FROM Events e
       LEFT JOIN Clubs c ON e.club_id = c.id
@@ -134,8 +135,8 @@ router.get('/pending', authenticateToken, authorize('department_head'), async (r
 
     res.json({
       success: true,
-      count: result.recordset.length,
-      events: result.recordset
+      count: result.rows.length,
+      events: result.rows
     });
   } catch (error) {
     console.error('Get pending events error:', error);
@@ -153,23 +154,24 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
     const pool = req.app.get('dbPool');
 
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .query(`
+    const result = await pool.query(
+      `
         SELECT 
           e.*,
           c.name as club_name,
           c.club_email,
-          u.first_name + ' ' + u.last_name as created_by_name,
+          u.first_name || ' ' || u.last_name as created_by_name,
           u.email as created_by_email,
           (SELECT COUNT(*) FROM EventRegistrations WHERE event_id = e.id AND status = 'registered') as registered_count
         FROM Events e
         LEFT JOIN Clubs c ON e.club_id = c.id
         LEFT JOIN Users u ON e.created_by = u.id
-        WHERE e.id = @id
-      `);
+        WHERE e.id = $1
+      `,
+      [id]
+    );
 
-    if (result.recordset.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -178,7 +180,7 @@ router.get('/:id', async (req, res) => {
 
     res.json({
       success: true,
-      event: result.recordset[0]
+      event: result.rows[0]
     });
   } catch (error) {
     console.error('Get event error:', error);
@@ -216,46 +218,42 @@ router.post('/', authenticateToken, authorize('club_faculty', 'admin'), async (r
 
     const pool = req.app.get('dbPool');
 
-    const result = await pool.request()
-      .input('title', sql.NVarChar, title)
-      .input('description', sql.NVarChar, description || null)
-      .input('category', sql.NVarChar, category || 'General')
-      .input('event_date', sql.Date, event_date)
-      .input('event_time', sql.NVarChar, event_time || null)
-      .input('venue', sql.NVarChar, venue)
-      .input('fee', sql.NVarChar, fee || 'Free')
-      .input('expected_attendees', sql.Int, expected_attendees || 50)
-      .input('club_id', sql.Int, club_id || 1)
-      .input('created_by', sql.Int, req.user.id)
-      .input('status', sql.NVarChar, 'pending')
-      .input('registration_form_url', sql.NVarChar, registration_form_url || null)
-      .query(`
+    const result = await pool.query(
+      `
         INSERT INTO Events (
           title, description, category, event_date, event_time,
           venue, fee, expected_attendees, club_id, created_by, status, registration_form_url
         )
-        OUTPUT INSERTED.*
         VALUES (
-          @title, @description, @category, @event_date, @event_time,
-          @venue, @fee, @expected_attendees, @club_id, @created_by, @status, @registration_form_url
+          $1, $2, $3, $4, $5,
+          $6, $7, $8, $9, $10, $11, $12
         )
-      `);
+        RETURNING *
+      `,
+      [
+        title,
+        description || null,
+        category || 'General',
+        event_date,
+        event_time || null,
+        venue,
+        fee || 'Free',
+        expected_attendees || 50,
+        club_id || 1,
+        req.user.id,
+        'pending',
+        registration_form_url || null
+      ]
+    );
 
     res.status(201).json({
       success: true,
       message: 'Event created successfully',
-      event: result.recordset[0]
+      event: result.rows[0]
     });
   } catch (error) {
     console.error('Create event error details:', {
       message: error.message,
-      code: error.code,
-      number: error.number,
-      state: error.state,
-      class: error.class,
-      lineNumber: error.lineNumber,
-      serverName: error.serverName,
-      procName: error.procName,
       stack: error.stack
     });
     
@@ -275,11 +273,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const pool = req.app.get('dbPool');
 
     // Check if event exists and user has permission
-    const eventCheck = await pool.request()
-      .input('id', sql.Int, id)
-      .query('SELECT created_by FROM Events WHERE id = @id');
+    const eventCheck = await pool.query(
+      'SELECT created_by FROM Events WHERE id = $1',
+      [id]
+    );
 
-    if (eventCheck.recordset.length === 0) {
+    if (eventCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -287,7 +286,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     // Only creator or admin can update
-    if (eventCheck.recordset[0].created_by !== req.user.id && req.user.role !== 'admin') {
+    if (eventCheck.rows[0].created_by !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to update this event'
@@ -306,37 +305,41 @@ router.put('/:id', authenticateToken, async (req, res) => {
       status
     } = req.body;
 
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('title', sql.NVarChar, title)
-      .input('description', sql.NVarChar, description)
-      .input('category', sql.NVarChar, category)
-      .input('event_date', sql.Date, event_date)
-      .input('event_time', sql.NVarChar, event_time)
-      .input('venue', sql.NVarChar, venue)
-      .input('fee', sql.NVarChar, fee)
-      .input('expected_attendees', sql.Int, expected_attendees)
-      .input('status', sql.NVarChar, status)
-      .query(`
+    const result = await pool.query(
+      `
         UPDATE Events
         SET 
-          title = @title,
-          description = @description,
-          category = @category,
-          event_date = @event_date,
-          event_time = @event_time,
-          venue = @venue,
-          fee = @fee,
-          expected_attendees = @expected_attendees,
-          status = @status
-        OUTPUT INSERTED.*
-        WHERE id = @id
-      `);
+          title = $1,
+          description = $2,
+          category = $3,
+          event_date = $4,
+          event_time = $5,
+          venue = $6,
+          fee = $7,
+          expected_attendees = $8,
+          status = $9,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $10
+        RETURNING *
+      `,
+      [
+        title,
+        description,
+        category,
+        event_date,
+        event_time,
+        venue,
+        fee,
+        expected_attendees,
+        status,
+        id
+      ]
+    );
 
     res.json({
       success: true,
       message: 'Event updated successfully',
-      event: result.recordset[0]
+      event: result.rows[0]
     });
   } catch (error) {
     console.error('Update event error:', error);
@@ -355,11 +358,12 @@ router.delete('/:id', authenticateToken, authorize('admin'), async (req, res) =>
     const pool = req.app.get('dbPool');
 
     // Check if event exists
-    const eventCheck = await pool.request()
-      .input('id', sql.Int, id)
-      .query('SELECT id FROM Events WHERE id = @id');
+    const eventCheck = await pool.query(
+      'SELECT id FROM Events WHERE id = $1',
+      [id]
+    );
 
-    if (eventCheck.recordset.length === 0) {
+    if (eventCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -367,9 +371,10 @@ router.delete('/:id', authenticateToken, authorize('admin'), async (req, res) =>
     }
 
     // Delete event
-    await pool.request()
-      .input('id', sql.Int, id)
-      .query('DELETE FROM Events WHERE id = @id');
+    await pool.query(
+      'DELETE FROM Events WHERE id = $1',
+      [id]
+    );
 
     res.json({
       success: true,
@@ -393,11 +398,12 @@ router.post('/:id/register', authenticateToken, async (req, res) => {
     const pool = req.app.get('dbPool');
 
     // Check if event exists
-    const eventCheck = await pool.request()
-      .input('id', sql.Int, id)
-      .query('SELECT * FROM Events WHERE id = @id');
+    const eventCheck = await pool.query(
+      'SELECT * FROM Events WHERE id = $1',
+      [id]
+    );
 
-    if (eventCheck.recordset.length === 0) {
+    if (eventCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -405,12 +411,12 @@ router.post('/:id/register', authenticateToken, async (req, res) => {
     }
 
     // Check if already registered
-    const regCheck = await pool.request()
-      .input('event_id', sql.Int, id)
-      .input('user_id', sql.Int, req.user.id)
-      .query('SELECT * FROM EventRegistrations WHERE event_id = @event_id AND user_id = @user_id');
+    const regCheck = await pool.query(
+      'SELECT * FROM EventRegistrations WHERE event_id = $1 AND user_id = $2',
+      [id, req.user.id]
+    );
 
-    if (regCheck.recordset.length > 0) {
+    if (regCheck.rows.length > 0) {
       return res.status(400).json({
         success: false,
         message: 'You are already registered for this event'
@@ -418,15 +424,13 @@ router.post('/:id/register', authenticateToken, async (req, res) => {
     }
 
     // Register for event
-    await pool.request()
-      .input('event_id', sql.Int, id)
-      .input('user_id', sql.Int, req.user.id)
-      .input('registration_type', sql.NVarChar, registration_type || 'attendee')
-      .input('status', sql.NVarChar, 'registered')
-      .query(`
+    await pool.query(
+      `
         INSERT INTO EventRegistrations (event_id, user_id, registration_type, status)
-        VALUES (@event_id, @user_id, @registration_type, @status)
-      `);
+        VALUES ($1, $2, $3, $4)
+      `,
+      [id, req.user.id, registration_type || 'attendee', 'registered']
+    );
 
     res.json({
       success: true,
@@ -449,12 +453,12 @@ router.delete('/:id/register', authenticateToken, async (req, res) => {
     const pool = req.app.get('dbPool');
 
     // Check if registered
-    const regCheck = await pool.request()
-      .input('event_id', sql.Int, id)
-      .input('user_id', sql.Int, req.user.id)
-      .query('SELECT * FROM EventRegistrations WHERE event_id = @event_id AND user_id = @user_id');
+    const regCheck = await pool.query(
+      'SELECT * FROM EventRegistrations WHERE event_id = $1 AND user_id = $2',
+      [id, req.user.id]
+    );
 
-    if (regCheck.recordset.length === 0) {
+    if (regCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Registration not found'
@@ -462,10 +466,10 @@ router.delete('/:id/register', authenticateToken, async (req, res) => {
     }
 
     // Cancel registration
-    await pool.request()
-      .input('event_id', sql.Int, id)
-      .input('user_id', sql.Int, req.user.id)
-      .query('DELETE FROM EventRegistrations WHERE event_id = @event_id AND user_id = @user_id');
+    await pool.query(
+      'DELETE FROM EventRegistrations WHERE event_id = $1 AND user_id = $2',
+      [id, req.user.id]
+    );
 
     res.json({
       success: true,
@@ -488,11 +492,12 @@ router.get('/:id/registrations', authenticateToken, async (req, res) => {
     const pool = req.app.get('dbPool');
 
     // Check if event exists and user has permission
-    const eventCheck = await pool.request()
-      .input('id', sql.Int, id)
-      .query('SELECT created_by FROM Events WHERE id = @id');
+    const eventCheck = await pool.query(
+      'SELECT created_by FROM Events WHERE id = $1',
+      [id]
+    );
 
-    if (eventCheck.recordset.length === 0) {
+    if (eventCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -500,16 +505,15 @@ router.get('/:id/registrations', authenticateToken, async (req, res) => {
     }
 
     // Only creator or admin can view registrations
-    if (eventCheck.recordset[0].created_by !== req.user.id && req.user.role !== 'admin') {
+    if (eventCheck.rows[0].created_by !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'You do not have permission to view registrations'
       });
     }
 
-    const result = await pool.request()
-      .input('event_id', sql.Int, id)
-      .query(`
+    const result = await pool.query(
+      `
         SELECT 
           er.id,
           er.registration_type,
@@ -522,14 +526,16 @@ router.get('/:id/registrations', authenticateToken, async (req, res) => {
           u.student_id
         FROM EventRegistrations er
         JOIN Users u ON er.user_id = u.id
-        WHERE er.event_id = @event_id
+        WHERE er.event_id = $1
         ORDER BY er.registration_time DESC
-      `);
+      `,
+      [id]
+    );
 
     res.json({
       success: true,
-      count: result.recordset.length,
-      registrations: result.recordset
+      count: result.rows.length,
+      registrations: result.rows
     });
   } catch (error) {
     console.error('Get registrations error:', error);
@@ -549,18 +555,19 @@ router.put('/:id/approve', authenticateToken, authorize('department_head'), asyn
     const pool = req.app.get('dbPool');
 
     // Check if event exists and is pending
-    const eventCheck = await pool.request()
-      .input('id', sql.Int, id)
-      .query('SELECT id, status, title FROM Events WHERE id = @id');
+    const eventCheck = await pool.query(
+      'SELECT id, status, title FROM Events WHERE id = $1',
+      [id]
+    );
 
-    if (eventCheck.recordset.length === 0) {
+    if (eventCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
       });
     }
 
-    const event = eventCheck.recordset[0];
+    const event = eventCheck.rows[0];
     if (event.status !== 'pending') {
       return res.status(400).json({
         success: false,
@@ -569,32 +576,29 @@ router.put('/:id/approve', authenticateToken, authorize('department_head'), asyn
     }
 
     // Approve the event
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('approved_by', sql.Int, req.user.id)
-      .input('approval_date', sql.DateTime2, new Date())
-      .query(`
+    const result = await pool.query(
+      `
         UPDATE Events
         SET 
           status = 'approved',
-          approved_by = @approved_by,
-          approval_date = @approval_date,
-          updated_at = GETDATE()
-        OUTPUT INSERTED.*
-        WHERE id = @id
-      `);
+          approved_by = $1,
+          approval_date = $2,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+        RETURNING *
+      `,
+      [req.user.id, new Date(), id]
+    );
 
     // Log the approval in EventApprovals table if it exists
     try {
-      await pool.request()
-        .input('event_id', sql.Int, id)
-        .input('approved_by', sql.Int, req.user.id)
-        .input('approval_status', sql.NVarChar, 'approved')
-        .input('comments', sql.NVarChar, comments || 'Event approved by department head')
-        .query(`
+      await pool.query(
+        `
           INSERT INTO EventApprovals (event_id, approved_by, approval_status, comments, approval_date)
-          VALUES (@event_id, @approved_by, @approval_status, @comments, GETDATE())
-        `);
+          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+        `,
+        [id, req.user.id, 'approved', comments || 'Event approved by department head']
+      );
     } catch (approvalLogError) {
       console.log('Note: Could not log to EventApprovals table:', approvalLogError.message);
     }
@@ -602,7 +606,7 @@ router.put('/:id/approve', authenticateToken, authorize('department_head'), asyn
     res.json({
       success: true,
       message: `Event "${event.title}" has been approved successfully`,
-      event: result.recordset[0]
+      event: result.rows[0]
     });
   } catch (error) {
     console.error('Approve event error:', error);
@@ -629,18 +633,19 @@ router.put('/:id/reject', authenticateToken, authorize('department_head'), async
     }
 
     // Check if event exists and is pending
-    const eventCheck = await pool.request()
-      .input('id', sql.Int, id)
-      .query('SELECT id, status, title FROM Events WHERE id = @id');
+    const eventCheck = await pool.query(
+      'SELECT id, status, title FROM Events WHERE id = $1',
+      [id]
+    );
 
-    if (eventCheck.recordset.length === 0) {
+    if (eventCheck.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
       });
     }
 
-    const event = eventCheck.recordset[0];
+    const event = eventCheck.rows[0];
     if (event.status !== 'pending') {
       return res.status(400).json({
         success: false,
@@ -649,32 +654,29 @@ router.put('/:id/reject', authenticateToken, authorize('department_head'), async
     }
 
     // Reject the event
-    const result = await pool.request()
-      .input('id', sql.Int, id)
-      .input('approved_by', sql.Int, req.user.id)
-      .input('approval_date', sql.DateTime2, new Date())
-      .query(`
+    const result = await pool.query(
+      `
         UPDATE Events
         SET 
           status = 'rejected',
-          approved_by = @approved_by,
-          approval_date = @approval_date,
-          updated_at = GETDATE()
-        OUTPUT INSERTED.*
-        WHERE id = @id
-      `);
+          approved_by = $1,
+          approval_date = $2,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $3
+        RETURNING *
+      `,
+      [req.user.id, new Date(), id]
+    );
 
     // Log the rejection in EventApprovals table if it exists
     try {
-      await pool.request()
-        .input('event_id', sql.Int, id)
-        .input('approved_by', sql.Int, req.user.id)
-        .input('approval_status', sql.NVarChar, 'rejected')
-        .input('comments', sql.NVarChar, reason)
-        .query(`
+      await pool.query(
+        `
           INSERT INTO EventApprovals (event_id, approved_by, approval_status, comments, approval_date)
-          VALUES (@event_id, @approved_by, @approval_status, @comments, GETDATE())
-        `);
+          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+        `,
+        [id, req.user.id, 'rejected', reason]
+      );
     } catch (approvalLogError) {
       console.log('Note: Could not log to EventApprovals table:', approvalLogError.message);
     }
@@ -683,7 +685,7 @@ router.put('/:id/reject', authenticateToken, authorize('department_head'), async
       success: true,
       message: `Event "${event.title}" has been rejected`,
       reason: reason,
-      event: result.recordset[0]
+      event: result.rows[0]
     });
   } catch (error) {
     console.error('Reject event error:', error);
@@ -702,22 +704,23 @@ router.get('/:id/approvals', authenticateToken, authorize('department_head', 'ad
     const pool = req.app.get('dbPool');
 
     // Get event basic info
-    const eventResult = await pool.request()
-      .input('id', sql.Int, id)
-      .query(`
+    const eventResult = await pool.query(
+      `
         SELECT 
           e.id,
           e.title,
           e.status,
           e.approved_by,
           e.approval_date,
-          approver.first_name + ' ' + approver.last_name as approved_by_name
+          approver.first_name || ' ' || approver.last_name as approved_by_name
         FROM Events e
         LEFT JOIN Users approver ON e.approved_by = approver.id
-        WHERE e.id = @id
-      `);
+        WHERE e.id = $1
+      `,
+      [id]
+    );
 
-    if (eventResult.recordset.length === 0) {
+    if (eventResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
@@ -727,28 +730,29 @@ router.get('/:id/approvals', authenticateToken, authorize('department_head', 'ad
     // Get approval history from EventApprovals table if it exists
     let approvalHistory = [];
     try {
-      const historyResult = await pool.request()
-        .input('event_id', sql.Int, id)
-        .query(`
+      const historyResult = await pool.query(
+        `
           SELECT 
             ea.approval_status,
             ea.comments,
             ea.approval_date,
-            u.first_name + ' ' + u.last_name as approver_name,
+            u.first_name || ' ' || u.last_name as approver_name,
             u.email as approver_email
           FROM EventApprovals ea
           LEFT JOIN Users u ON ea.approved_by = u.id
-          WHERE ea.event_id = @event_id
+          WHERE ea.event_id = $1
           ORDER BY ea.approval_date DESC
-        `);
-      approvalHistory = historyResult.recordset;
+        `,
+        [id]
+      );
+      approvalHistory = historyResult.rows;
     } catch (historyError) {
       console.log('Note: EventApprovals table not accessible:', historyError.message);
     }
 
     res.json({
       success: true,
-      event: eventResult.recordset[0],
+      event: eventResult.rows[0],
       approvalHistory: approvalHistory
     });
   } catch (error) {

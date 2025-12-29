@@ -69,7 +69,7 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
       // Debug: Log the event object to check if registration_form_url exists
       console.log('Event registration clicked:', event);
       console.log('Registration form URL:', event.registration_form_url);
-      
+
       // If event has a registration form URL, open it in a new tab
       if (event.registration_form_url) {
         console.log('Opening registration form in new tab:', event.registration_form_url);
@@ -107,7 +107,7 @@ const VisitorPage = ({ user, onShowLoginModal, onShowRegistrationModal, onLogout
       </div>
       <div className="container">
         <header className="header">
-          <img src="../public/VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
+          <img src="/VIT_AP_logo.svg" alt="VIT Logo" className="header-logo" />
           <div className="login-button-container">
             {user ? (
               <>

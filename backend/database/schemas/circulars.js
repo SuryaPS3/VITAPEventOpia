@@ -1,15 +1,15 @@
 export const createCircularsTable = async (pool) => {
   console.log('Creating Circulars table...');
-  await pool.request().query(`
+  await pool.query(`
     CREATE TABLE Circulars (
-      id INT IDENTITY(1,1) PRIMARY KEY,
-      title NVARCHAR(300) NOT NULL,
-      content NVARCHAR(MAX) NOT NULL,
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(300) NOT NULL,
+      content TEXT NOT NULL,
       created_by INT NOT NULL,
-      target_audience NVARCHAR(50) DEFAULT 'all' CHECK (target_audience IN ('all', 'clubs', 'students', 'faculty')),
-      is_active BIT DEFAULT 1,
-      created_at DATETIME2 DEFAULT GETDATE(),
-      updated_at DATETIME2 DEFAULT GETDATE(),
+      target_audience VARCHAR(50) DEFAULT 'all' CHECK (target_audience IN ('all', 'clubs', 'students', 'faculty')),
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (created_by) REFERENCES Users(id)
     )
   `);
@@ -17,5 +17,5 @@ export const createCircularsTable = async (pool) => {
 };
 
 export const dropCircularsTable = async (pool) => {
-  await pool.request().query('DROP TABLE IF EXISTS Circulars');
+  await pool.query('DROP TABLE IF EXISTS Circulars CASCADE');
 };
