@@ -1,5 +1,4 @@
 import express from 'express';
-import sql from 'mssql';
 import { authenticateToken, authorize } from '../middleware/auth.js';
 
 const router = express.Router();

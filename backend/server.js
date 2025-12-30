@@ -45,7 +45,7 @@ async function initializeDatabase() {
   try {
     console.log('🔄 Connecting to database...');
     pool = await getPool();
-    console.log('✅ Connected to Azure SQL Database');
+    console.log('✅ Connected to PostGre SQL Database');
     
     // Make pool available to the app
     app.set('dbPool', pool);

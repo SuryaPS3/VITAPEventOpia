@@ -7,17 +7,17 @@ WORKDIR /app
 #3. Copy package.json
 COPY package*.json ./
 
-# 4. Install dependencies
-RUN npm install
+#4. Set environment variables
+ENV NODE_ENV=production
 
-# 5. Copy the rest of the application code
+# 5. Install dependencies
+RUN npm ci --omit=dev
+
+# 6. Copy the rest of the application code
 COPY . .
 
-# 6. Expose the application port
+# 7. Expose the application port
 EXPOSE 3000
 
-# 7. Start the application
+# 8. Start the application
 CMD ["npm", "run","start:prod"]
-
-#8. Optional: Set environment variables
-ENV NODE_ENV=production

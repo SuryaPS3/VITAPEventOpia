@@ -6,8 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --no-deprecation server.js",
-    "start": "nodemon --no-deprecation server.js",
-    "test": "node test-db.js",
+    "start": "node --no-deprecation server.js",    "start:prod": "node --no-deprecation server.js",    "test": "node test-db.js",
     "setup": "node database-setup.js",
     "test:setup": "node test-db.js setup",
     "init:db": "node schemas/init-database.js"
@@ -33,7 +32,7 @@
     "pg": "^8.16.3"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.1.11"
   },
   "engines": {
     "node": ">=16.0.0"
