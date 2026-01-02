@@ -69,7 +69,7 @@ app.get('/', (req, res) => {
 app.get('/api/health', async (req, res) => {
   try {
     const pool = req.app.get('dbPool');
-    await pool.request().query('SELECT 1');
+    await pool.query('SELECT 1');
     
     res.json({
       status: 'OK',

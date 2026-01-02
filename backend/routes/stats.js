@@ -9,8 +9,8 @@ router.get('/', authenticateToken, authorize('department_head', 'admin'), async 
     const pool = req.app.get('dbPool');
 
     const queries = {
-      totalEventsThisMonth: "SELECT COUNT(*) as total FROM Events WHERE MONTH(event_date) = MONTH(GETDATE()) AND YEAR(event_date) = YEAR(GETDATE())",
-      activeUsers: "SELECT COUNT(*) as total FROM Users WHERE is_active = 1",
+      totalEventsThisMonth: "SELECT COUNT(*) as total FROM Events WHERE EXTRACT(MONTH FROM event_date) = EXTRACT(MONTH FROM CURRENT_DATE) AND EXTRACT(YEAR FROM event_date) = EXTRACT(YEAR FROM CURRENT_DATE)",
+      activeUsers: "SELECT COUNT(*) as total FROM Users WHERE is_active = true",
       totalBudgetAllocated: "SELECT SUM(CAST(REPLACE(fee, '₹', '') AS INT)) as total FROM Events WHERE fee LIKE '₹%'",
       pendingApprovals: "SELECT COUNT(*) as total FROM Events WHERE status = 'pending'",
       totalStudents: "SELECT COUNT(*) as total FROM Users WHERE role = 'club_member'",
@@ -19,8 +19,8 @@ router.get('/', authenticateToken, authorize('department_head', 'admin'), async 
 
     const stats = {};
     for (const key in queries) {
-      const result = await pool.request().query(queries[key]);
-      stats[key] = result.recordset[0].total;
+      const result = await pool.query(queries[key]);
+      stats[key] = result.rows[0].total;
     }
 
     res.json({
@@ -40,8 +40,8 @@ router.get('/', authenticateToken, authorize('department_head', 'admin'), async 
 router.get('/recent-decisions', authenticateToken, authorize('department_head'), async (req, res) => {
   try {
     const pool = req.app.get('dbPool');
-    const result = await pool.request().query(`
-      SELECT TOP 5
+    const result = await pool.query(`
+      SELECT
         e.id,
         e.title as eventTitle,
         ea.approval_status as decision,
@@ -53,12 +53,13 @@ router.get('/recent-decisions', authenticateToken, authorize('department_head'),
       JOIN Events e ON ea.event_id = e.id
       JOIN Clubs c ON e.club_id = c.id
       ORDER BY ea.approval_date DESC
+      LIMIT 5
     `);
 
     res.json({
       success: true,
-      count: result.recordset.length,
-      decisions: result.recordset
+      count: result.rows.length,
+      decisions: result.rows
     });
   } catch (error) {
     console.error('Get recent decisions error:', error);

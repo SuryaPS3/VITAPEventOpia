@@ -5,8 +5,10 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "node --no-deprecation server.js",
-    "start": "node --no-deprecation server.js",    "start:prod": "node --no-deprecation server.js",    "test": "node test-db.js",
+    "dev": "nodemon --no-deprecation server.js",
+    "start": "nodemon --no-deprecation server.js",
+    "start:prod": "node --no-deprecation server.js",
+    "test": "node test-db.js",
     "setup": "node database-setup.js",
     "test:setup": "node test-db.js setup",
     "init:db": "node schemas/init-database.js"

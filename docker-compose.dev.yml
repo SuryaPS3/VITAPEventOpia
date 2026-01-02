@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  backend:
+    image: node:20-alpine
+    container_name: backend-dev
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run start"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  frontend:
+    image: node:20-alpine
+    container_name: frontend-dev
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=/api
+    volumes:
+      - ./Frontend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Nginx proxy for API routing (optional but recommended)
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge

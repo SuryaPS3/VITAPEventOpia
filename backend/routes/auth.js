@@ -34,7 +34,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    const user = result.recordset[0];
+    const user = result.rows[0];
     console.log('User retrieved:', user);
     console.log('Incoming password:', password);
     console.log('Hashed password from DB:', user.password_hash);
@@ -93,19 +93,14 @@ router.post('/register', async (req, res) => {
     const password_hash = await bcrypt.hash(password, 12);
 
     console.log('Inserting user into database...');
-    const result = await pool.request()
-      .input('email', sql.NVarChar, email)
-      .input('password_hash', sql.NVarChar, password_hash)
-      .input('first_name', sql.NVarChar, first_name)
-      .input('last_name', sql.NVarChar, last_name)
-      .input('role', sql.NVarChar, 'visitor')
-      .query(`
-        INSERT INTO Users (email, password_hash, first_name, last_name, role, is_active)
-        OUTPUT INSERTED.*
-        VALUES (@email, @password_hash, @first_name, @last_name, @role, 1)
-      `);
+    const result = await pool.query(
+      `INSERT INTO Users (email, password_hash, first_name, last_name, role, is_active)
+       VALUES ($1, $2, $3, $4, $5, true)
+       RETURNING *`,
+      [email, password_hash, first_name, last_name, 'visitor']
+    );
 
-    const newUser = result.recordset[0];
+    const newUser = result.rows[0];
     console.log('User inserted successfully:', newUser);
 
     res.status(201).json({

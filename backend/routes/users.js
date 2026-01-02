@@ -9,13 +9,11 @@ router.put('/request-promotion', authenticateToken, async (req, res) => {
     const { requested_role } = req.body;
     const pool = req.app.get('dbPool');
 
-    await pool.request()
-      .input('user_id', sql.Int, req.user.id)
-      .input('requested_role', sql.NVarChar, requested_role)
-      .query(`
-        INSERT INTO PromotionRequests (user_id, requested_role)
-        VALUES (@user_id, @requested_role)
-      `);
+    await pool.query(
+      `INSERT INTO PromotionRequests (user_id, requested_role)
+       VALUES ($1, $2)`,
+      [req.user.id, requested_role]
+    );
 
     res.json({
       success: true,
@@ -34,7 +32,7 @@ router.put('/request-promotion', authenticateToken, async (req, res) => {
 router.get('/promotion-requests', authenticateToken, authorize('department_head'), async (req, res) => {
   try {
     const pool = req.app.get('dbPool');
-    const result = await pool.request().query(`
+    const result = await pool.query(`
       SELECT pr.id, u.first_name, u.last_name, u.email, pr.requested_role
       FROM PromotionRequests pr
       JOIN Users u ON pr.user_id = u.id
@@ -42,7 +40,7 @@ router.get('/promotion-requests', authenticateToken, authorize('department_head'
     `);
     res.json({
       success: true,
-      users: result.recordset
+      users: result.rows
     });
   } catch (error) {
     console.error('Get promotion requests error:', error);
@@ -59,35 +57,33 @@ router.put('/:id/approve-promotion', authenticateToken, authorize('department_he
     const { id } = req.params;
     const pool = req.app.get('dbPool');
 
-    const promotionRequestResult = await pool.request()
-      .input('id', sql.Int, id)
-      .query('SELECT user_id, requested_role FROM PromotionRequests WHERE id = @id');
+    const promotionRequestResult = await pool.query(
+      'SELECT user_id, requested_role FROM PromotionRequests WHERE id = $1',
+      [id]
+    );
 
-    if (promotionRequestResult.recordset.length === 0) {
+    if (promotionRequestResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Promotion request not found'
       });
     }
 
-    const { user_id, requested_role } = promotionRequestResult.recordset[0];
+    const { user_id, requested_role } = promotionRequestResult.rows[0];
 
-    await pool.request()
-      .input('user_id', sql.Int, user_id)
-      .input('role', sql.NVarChar, requested_role)
-      .query(`
-        UPDATE Users
-        SET role = @role
-        WHERE id = @user_id
-      `);
+    await pool.query(
+      `UPDATE Users
+       SET role = $1
+       WHERE id = $2`,
+      [requested_role, user_id]
+    );
 
-    await pool.request()
-      .input('id', sql.Int, id)
-      .query(`
-        UPDATE PromotionRequests
-        SET status = 'approved'
-        WHERE id = @id
-      `);
+    await pool.query(
+      `UPDATE PromotionRequests
+       SET status = 'approved'
+       WHERE id = $1`,
+      [id]
+    );
 
     res.json({
       success: true,
@@ -108,13 +104,12 @@ router.put('/:id/reject-promotion', authenticateToken, authorize('department_hea
     const { id } = req.params;
     const pool = req.app.get('dbPool');
 
-    await pool.request()
-      .input('id', sql.Int, id)
-      .query(`
-        UPDATE PromotionRequests
-        SET status = 'rejected'
-        WHERE id = @id
-      `);
+    await pool.query(
+      `UPDATE PromotionRequests
+       SET status = 'rejected'
+       WHERE id = $1`,
+      [id]
+    );
 
     res.json({
       success: true,
