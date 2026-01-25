@@ -1,5 +1,5 @@
 #1. Runtime environment for Node.js applications
-FROM node:20
+FROM node:18
 
 #2. Set the working directory
 WORKDIR /app 
