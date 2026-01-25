@@ -2,7 +2,8 @@
 // This file handles ALL communication with the backend
 
 // Base URL of your backend server
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Use relative path so nginx proxy handles it
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 console.log('API_URL:', API_URL);
 
 // Helper function to get the authentication token

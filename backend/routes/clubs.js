@@ -7,11 +7,11 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const pool = req.app.get('dbPool');
-    const result = await pool.request().query('SELECT * FROM Clubs');
+    const result = await pool.query('SELECT * FROM Clubs');
     res.json({
       success: true,
-      count: result.recordset.length,
-      clubs: result.recordset
+      count: result.rows.length,
+      clubs: result.rows
     });
   } catch (error) {
     console.error('Get clubs error:', error);
